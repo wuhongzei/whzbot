@@ -1,0 +1,39 @@
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm' version '1.4.32' // 确保添加 Kotlin
+}
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(11))
+    }
+}
+
+group = "org.example"
+version = "2.4.0"
+
+repositories {
+    mavenCentral()
+}
+
+
+dependencies {
+    // 开发时使用 mirai-core-api，运行时提供 mirai-core
+
+    api("net.mamoe:mirai-core-api:2.6.2")
+    runtimeOnly("net.mamoe:mirai-core:2.6.2")
+
+    // 可以简单地只添加api("net.mamoe:mirai-core:2.6.5")
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "org.example.whzbot.JavaMain"
+        attributes "Version": project.version
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+    exclude("META-INF/BC2048KE.SF", "META-INF/BC2048KE.DSA", "META-INF/BC1024KE.SF", "META-INF/BC1024KE.DSA")
+}
