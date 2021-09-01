@@ -87,6 +87,16 @@ public enum Command {
     event(CommandType.MCSERVER, Permission.ANY_ADMIN, "eve"),
 
     math(CommandType.MATH, Permission.ANYONE, "math"),
+    add(CommandType.MATH, Permission.ANYONE, "add"),
+    mul(CommandType.MATH, Permission.ANYONE, "mul"),
+
+    porb(CommandType.MATH, Permission.ANYONE, "prob"),
+    bnmd(CommandType.MATH, Permission.ANYONE, "bnmd"), //binomial distribution
+    nord(CommandType.MATH, Permission.ANYONE, "nord"), //normal distribution
+
+    image(CommandType.GENERAL, Permission.ANYONE, "image"),
+    app_share(CommandType.GENERAL, Permission.ANYONE, "share"),
+    image_save(CommandType.WEB, Permission.BOT_ADMIN, "imgs"),
 
     unknown(CommandType.GENERAL, "unknown");
 

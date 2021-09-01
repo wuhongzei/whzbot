@@ -194,6 +194,7 @@ public class CommandHelper {
         int bonus = 0;
         int pick = 0;
 
+        loop:
         while (holder.isNextWord()) {
             w = holder.getNextWord();
             switch (w) {
@@ -229,7 +230,7 @@ public class CommandHelper {
                     break;
                 default:
                     holder.setNextArg(w);
-                    break;
+                    break loop;
             }
         }
         if (number != 1 && bonus != 0)

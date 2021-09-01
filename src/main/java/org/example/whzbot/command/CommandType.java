@@ -9,7 +9,8 @@ public enum CommandType {
     SIMCHAT(4),
     MCSERVER(5),
     MATH(6),
-    NOTIFY(9);
+    WEB(9),
+    NOTIFY(10);
 
     private final int id;
     CommandType(int id) {

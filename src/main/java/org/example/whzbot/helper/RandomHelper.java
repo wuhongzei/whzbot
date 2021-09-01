@@ -30,13 +30,18 @@ public class RandomHelper {
     public static int dice(int bound, int count) {
         if (count < 0)
             return 0;
-        int sum = 0;
-        if (count > 10000) {
-            sum = (count - 10000) * (bound + 1) / 2;
+        if (count > 4096) {
+            double sum = 0;
+            for (int i = 0; i < 4096; i++)
+                sum += rnd.nextDouble();
+            return (int) (sum * count / 4096 * (bound - 1)) + count;
         }
-        for (int i = 0; i < count; i++)
-            sum += dice(bound);
-        return sum;
+        else {
+            int sum = 0;
+            for (int i = 0; i < count; i++)
+                sum += rnd.nextInt(bound) ;
+            return sum + count;
+        }
     }
 
     public static String drawFromArray(String[] array) {

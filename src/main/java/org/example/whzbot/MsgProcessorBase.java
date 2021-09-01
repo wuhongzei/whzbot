@@ -10,6 +10,7 @@ import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.data.User;
 import org.example.whzbot.helper.DiceHelper;
+import org.example.whzbot.helper.ProbabilityHelper;
 import org.example.whzbot.helper.RandomHelper;
 import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.storage.CardDeck;
@@ -405,6 +406,37 @@ public abstract class MsgProcessorBase {
                     ).translate(lang_name));
                 }
                 break;
+            case bnmd: {
+                int x, n;
+                float p;
+                if (holder.isNextInt()) {
+                    x = Integer.parseInt(holder.getNextInt());
+                } else {
+                    reply("err no_arg");
+                    break;
+                }
+                if (holder.isNextInt()) {
+                    n = Integer.parseInt(holder.getNextInt());
+                } else {
+                    reply("err no_arg");
+                    break;
+                }
+                double prob = ProbabilityHelper.binomial_distribution(x, n, 0.5);
+                reply(Double.toString(prob));
+                break;
+            }
+            case nord: {
+                int x;
+                if (holder.isNextInt()) {
+                    x = Integer.parseInt(holder.getNextInt());
+                } else {
+                    reply("err no_arg");
+                    break;
+                }
+                double prob = ProbabilityHelper.normal_distribution(x / 256.0);
+                reply(Double.toString(prob) + " " + Double.toString(x / 8.0));
+                break;
+            }
             case reload:
                 if (event.getSender().getId() != JavaMain.master_qq) {
                     reply("Who are you?");
