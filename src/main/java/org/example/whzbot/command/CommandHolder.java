@@ -2,7 +2,6 @@ package org.example.whzbot.command;
 
 import java.util.Map;
 
-import org.example.whzbot.command.Command;
 import org.example.whzbot.helper.StringHelper;
 
 public class CommandHolder {
@@ -100,6 +99,30 @@ public class CommandHolder {
         String rtn = signed ? "-" : "";
         rtn += i == cursor ? "0" : this.cmd_arg.substring(this.cursor, i);
         this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+        return rtn;
+    }
+
+    public String getNextFloat() {
+        boolean signed = false;
+        if (this.cmd_arg.charAt(this.cursor) == '-') {
+            signed = true;
+            this.cursor++;
+        } else if (this.cmd_arg.charAt(this.cursor) == '+') {
+            this.cursor++;
+        }
+        int i = StringHelper.endOfInt(this.cmd_arg, this.cursor);
+        String rtn = signed ? "-" : "";
+        rtn += i == cursor ? "0" : this.cmd_arg.substring(this.cursor, i);
+        if (i < this.cmd_arg.length() && this.cmd_arg.charAt(i) == '.') {
+            this.cursor = i + 1;
+            if (this.isNextInt()) {
+                i = StringHelper.endOfInt(this.cmd_arg, this.cursor);
+                rtn = rtn + '.' + this.cmd_arg.substring(this.cursor, i);
+                this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+            }
+        } else {
+            this.cursor = i;
+        }
         return rtn;
     }
 

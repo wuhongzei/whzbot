@@ -32,7 +32,7 @@ public class User {
     }
 
     public String getNickName() {
-        if (this.character != null){
+        if (this.character != null) {
             String char_name = this.character.getName();
             return char_name.isEmpty() ? this.name : char_name;
         }
@@ -50,6 +50,12 @@ public class User {
         if (this.character == null)
             this.initCharacter();
         return this.character;
+    }
+
+    public UUID getCharacterUUID() {
+        if (this.character == null)
+            return null;
+        return this.character.getUUID();
     }
 
     public String getLang() {

@@ -20,18 +20,32 @@ public class ProbabilityHelper {
                 n - x + 1, n) / pi(0, x);
     }
 
+    final static int SIMULATE_NUM = 4096;
+    static int SIMULATE_HALF = 2048;
+    static int SIMULATE_MAX = 128;
+    static int SIMULATE_BIAS = 32;
+
     public static double normal_distribution(double x) {
+        x *= SIMULATE_BIAS;
         if (x < 0)
             return 0;
-        if (x > 16)
+        if (x > SIMULATE_MAX)
             return 0.5;
-        x = x * 256 + 129;
-        int j = (int) x;
-        double prob = 0;
-        for (int i = 129; i < j; i++)
-            prob += binomial_distribution(256 - i, 256, 0.5);
-        double a = binomial_distribution(255 - j, 256, 0.5);
-        return (prob + a * (x - j));
+        int m = SIMULATE_HALF - (int) x;
+
+        // def k as the smallest partition in desired area (left most)
+        double k = SIMULATE_NUM;
+        for (int i = 1; i < m; i++) {
+            k *= (SIMULATE_NUM - i) / (double) (i + 1);
+        }
+        // f are the extracted nested factors
+        double f = 1 + 1.0 / SIMULATE_HALF;
+        for (int i = SIMULATE_HALF - 1; i > m; i--) {
+            f = 1.0 + f;
+            f = f * (SIMULATE_NUM - i + 1) / (double) i;
+        }
+
+        return Math.pow(0.5, SIMULATE_NUM) * k * (x - (int) x + f);
     }
 
     private static double pi(int a, int b) {

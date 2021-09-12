@@ -16,6 +16,7 @@ public class Character {
     HashMap<String, Integer> skills = new HashMap<>();
     String image_path = null;
     String rule = null;
+    boolean used = true;
 
     UUID uuid;
 
@@ -32,6 +33,15 @@ public class Character {
     public Character(UUID uuid) {
         this.name = "";
         this.uuid = uuid;
+    }
+
+    public void setUsed(boolean b) {
+        this.used = b;
+        this.modified = true;
+    }
+
+    public boolean isUsed() {
+        return this.used;
     }
 
     public int setSkill(String skill_name, int value) {
@@ -95,6 +105,8 @@ public class Character {
             rtn.add(new JsonStringNode("nick_name", this.nick_name));
         if (this.rule != null)
             rtn.add(new JsonStringNode("rule", this.rule));
+        rtn.add(new JsonLongNode("used", Boolean.toString(this.used)));
+
         JsonObjectNode skill_node = new JsonObjectNode("skills");
         for (String skill_name : this.skills.keySet()) {
             skill_node.add(new JsonLongNode(
@@ -113,6 +125,8 @@ public class Character {
         this.nick_name = node instanceof JsonStringNode ? node.getContent() : null;
         node = json.get("rule");
         this.rule = node instanceof JsonStringNode ? node.getContent() : null;
+        node = json.get("used");
+        this.used = (node instanceof JsonLongNode) && Boolean.parseBoolean(node.getContent());
 
         node = json.get("skills");
         if (node instanceof JsonObjectNode) {

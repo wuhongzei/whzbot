@@ -40,6 +40,7 @@ public enum Command {
     set(CommandType.DICE, Permission.GROUP_ADMIN, "set"),
     str(CommandType.DICE, Permission.GROUP_ADMIN, "str"),
 
+    character(CommandType.DICE, Permission.ANYONE, "character"),
     coc7d(CommandType.DICE, Permission.ANYONE, "cocsepd"),
     coc6d(CommandType.DICE, Permission.ANYONE, "cochexd"),
     rules(CommandType.DICE, Permission.ANYONE, "rules"),

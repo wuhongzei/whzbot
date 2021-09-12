@@ -9,12 +9,15 @@ import org.example.whzbot.command.CommandHelper;
 import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.data.User;
+import org.example.whzbot.data.Character;
 import org.example.whzbot.helper.DiceHelper;
 import org.example.whzbot.helper.ProbabilityHelper;
 import org.example.whzbot.helper.RandomHelper;
 import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.storage.CardDeck;
 import org.example.whzbot.storage.GlobalVariable;
+
+import java.util.UUID;
 
 /*
  * Message Processor Base
@@ -118,8 +121,8 @@ public abstract class MsgProcessorBase {
                 break;
 
             case roll_det:
-                int cutoff = -1;
-                boolean has_cutoff = false;
+                int cutoff;
+                boolean has_cutoff;
                 String skill_name = "";
                 String reason = null;
                 if (holder.isNextInt()) {
@@ -131,8 +134,7 @@ public abstract class MsgProcessorBase {
                     if (holder.isNextInt()) {
                         cutoff = Integer.parseInt(holder.getNextInt());
                         has_cutoff = true;
-                    }
-                    else {
+                    } else {
                         cutoff = user.getCharacter().getSkill(skill_name);
                         has_cutoff = cutoff != -1;
                     }
@@ -181,22 +183,20 @@ public abstract class MsgProcessorBase {
                 result = CommandHelper.roll_dice(user, holder).split(" ", 2);
                 if (result[0].equals("err")) {
                     reply(result[1]);
-                }
-                else if (holder.hasNext()) {
+                } else if (holder.hasNext()) {
                     reply(new TranslateHelper(
                             "rollDiceReason",
-                            new TranslateHelper[] {
+                            new TranslateHelper[]{
                                     new TranslateHelper(user.getNickName()),
                                     new TranslateHelper(result[1]),
                                     new TranslateHelper(holder.getRest())
                             },
                             1
                     ).translate(lang_name));
-                }
-                else {
+                } else {
                     reply(new TranslateHelper(
                             "rollDice",
-                            new TranslateHelper[] {
+                            new TranslateHelper[]{
                                     new TranslateHelper(user.getNickName()),
                                     new TranslateHelper(result[1]),
                             },
@@ -222,7 +222,7 @@ public abstract class MsgProcessorBase {
                     case "mod":
                         reply(new TranslateHelper(
                                 "stModify",
-                                new TranslateHelper[] {
+                                new TranslateHelper[]{
                                         new TranslateHelper(user.getNickName()),
                                         new TranslateHelper(result[3]),
                                         new TranslateHelper(result[1]),
@@ -232,35 +232,35 @@ public abstract class MsgProcessorBase {
                         ).translate(lang_name));
                         break;
                     case "set":
-                        if (result.length>3) {
+                        if (result.length > 3) {
                             reply(new TranslateHelper(
                                     "stModify",
-                                    new TranslateHelper[] {
+                                    new TranslateHelper[]{
                                             new TranslateHelper(user.getNickName()),
                                             new TranslateHelper(result[3]),
                                             new TranslateHelper(result[1]),
                                             new TranslateHelper(result[2])
-                                    },1
+                                    }, 1
                             ).translate(lang_name));
                         } else {
                             reply(new TranslateHelper(
                                     "stDetail",
-                                    new TranslateHelper[] {
+                                    new TranslateHelper[]{
                                             new TranslateHelper(user.getNickName()),
                                             new TranslateHelper(result[2]),
                                             new TranslateHelper(result[1])
-                                    },1
+                                    }, 1
                             ).translate(lang_name));
                         }
                         break;
                     case "show":
                         reply(new TranslateHelper(
                                 "stShow",
-                                new TranslateHelper[] {
+                                new TranslateHelper[]{
                                         new TranslateHelper(user.getNickName()),
                                         new TranslateHelper(result[2]),
                                         new TranslateHelper(result[1])
-                                },1
+                                }, 1
                         ).translate(lang_name));
                         break;
                     default:
@@ -273,7 +273,7 @@ public abstract class MsgProcessorBase {
                     case "fal":
                         reply(new TranslateHelper(
                                 "rollSc",
-                                new TranslateHelper[] {
+                                new TranslateHelper[]{
                                         new TranslateHelper(user.getNickName()),
                                         new TranslateHelper(result[1]),
                                         new TranslateHelper(result[2]),
@@ -288,7 +288,7 @@ public abstract class MsgProcessorBase {
                     case "suc":
                         reply(new TranslateHelper(
                                 "rollSc",
-                                new TranslateHelper[] {
+                                new TranslateHelper[]{
                                         new TranslateHelper(user.getNickName()),
                                         new TranslateHelper(result[1]),
                                         new TranslateHelper(result[2]),
@@ -304,8 +304,7 @@ public abstract class MsgProcessorBase {
                         if ("san_unset".equals(result[1])) {
                             reply(new TranslateHelper("sanEmpty", 1)
                                     .translate(lang_name));
-                        }
-                        else {
+                        } else {
                             reply(new TranslateHelper("scInvalid", 1)
                                     .translate(lang_name));
                         }
@@ -315,6 +314,55 @@ public abstract class MsgProcessorBase {
             case en:
                 reply(CommandHelper.enhance(user, holder));
                 break;
+            case character: {
+                UUID uuid = user.getCharacterUUID();
+                if (!holder.hasNext()) {
+                    if (uuid != null)
+                        reply(uuid.toString());
+                    else
+                        reply("You have not initialize your character.");
+                    break;
+                } else if (holder.isNextWord()) {
+                    switch (holder.getNextWord()) {
+                        case "drop":
+                            user.setCharacter(null).setUsed(false);
+                            reply("You drop you character " + uuid.toString());
+                            break;
+                        case "use":
+                            if (!holder.hasNext()) {
+                                reply("need uuid");
+                                break;
+                            }
+                            try {
+                                UUID new_id = UUID.fromString(holder.getRest());
+                                Character ch = Pool.getCharacter(new_id);
+                                if (ch.isUsed()) {
+                                    reply("someone is using this character.");
+                                    break;
+                                } else
+                                    ch.setUsed(true);
+                                ch = user.setCharacter(ch);
+                                if (ch != null) {
+                                    ch.setUsed(false);
+                                    reply("you have changed character, you old char is " +
+                                            uuid.toString());
+                                } else {
+                                    reply("you are now using a new character.");
+                                }
+                                break;
+                            } catch (IllegalArgumentException e) {
+                                reply("not uuid");
+                                break;
+                            }
+                        default:
+                            break;
+                    }
+                    break;
+                } else {
+                    reply("unknown arg");
+                }
+                break;
+            }
             case draw:
                 String deck_name;
                 int draw_count;
@@ -408,7 +456,7 @@ public abstract class MsgProcessorBase {
                 break;
             case bnmd: {
                 int x, n;
-                float p;
+                double p;
                 if (holder.isNextInt()) {
                     x = Integer.parseInt(holder.getNextInt());
                 } else {
@@ -421,20 +469,24 @@ public abstract class MsgProcessorBase {
                     reply("err no_arg");
                     break;
                 }
-                double prob = ProbabilityHelper.binomial_distribution(x, n, 0.5);
+                if (holder.isNextSignedInt()) {
+                    p = Double.parseDouble(holder.getNextFloat());
+                } else
+                    p = 0.5;
+                double prob = ProbabilityHelper.binomial_distribution(x, n, p);
                 reply(Double.toString(prob));
                 break;
             }
             case nord: {
-                int x;
-                if (holder.isNextInt()) {
-                    x = Integer.parseInt(holder.getNextInt());
+                double x;
+                if (holder.isNextSignedInt()) {
+                    x = Double.parseDouble(holder.getNextFloat());
                 } else {
                     reply("err no_arg");
                     break;
                 }
-                double prob = ProbabilityHelper.normal_distribution(x / 256.0);
-                reply(Double.toString(prob) + " " + Double.toString(x / 8.0));
+                double prob = ProbabilityHelper.normal_distribution(x);
+                reply(prob + " " + x);
                 break;
             }
             case reload:
