@@ -3,6 +3,8 @@ package org.example.whzbot;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.message.data.LightApp;
 import net.mamoe.mirai.message.data.PlainText;
+import net.mamoe.mirai.message.data.Image;
+import net.mamoe.mirai.message.data.FlashImage;
 import net.mamoe.mirai.message.data.SingleMessage;
 
 import org.example.whzbot.command.CommandHolder;
@@ -28,15 +30,21 @@ public class FriendMsgProcessor extends MsgProcessorBase {
         this.debug(msg.getClass().toString());
 
         if (msg instanceof LightApp) {
-            JsonNode node = Json.fromString(
-                    StringHelper.parseRichText(msg.toString(), "app"));
+            JsonNode node = Json.fromString(((LightApp)msg).getContent());
             if (node != null) {
-                JsonNode str_node = node.get("node.get(\"meta.detail_1.qqdocurl\")");
+                JsonNode str_node = node.get("meta.detail_1.qqdocurl");
                 if (!(str_node instanceof JsonStringNode))
                     this.debug(node.toString());
                 else
                     reply(str_node.getContent());
             }
+            this.debug(((LightApp)msg).getContent());
+        } else if (msg instanceof Image) {
+            String url = Image.queryUrl((Image)msg);
+            reply(url);
+        } else if (msg instanceof FlashImage) {
+            String url = Image.queryUrl(((FlashImage) msg).getImage());
+            reply(url);
         }
 
         if (msg instanceof PlainText) {

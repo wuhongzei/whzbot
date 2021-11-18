@@ -1,5 +1,6 @@
 package org.example.whzbot.data;
 
+import org.example.whzbot.storage.json.JsonBooleanNode;
 import org.example.whzbot.storage.json.JsonLongNode;
 import org.example.whzbot.storage.json.JsonNode;
 import org.example.whzbot.storage.json.JsonObjectNode;
@@ -105,7 +106,7 @@ public class Character {
             rtn.add(new JsonStringNode("nick_name", this.nick_name));
         if (this.rule != null)
             rtn.add(new JsonStringNode("rule", this.rule));
-        rtn.add(new JsonLongNode("used", Boolean.toString(this.used)));
+        rtn.add(new JsonBooleanNode("used", this.used));
 
         JsonObjectNode skill_node = new JsonObjectNode("skills");
         for (String skill_name : this.skills.keySet()) {
