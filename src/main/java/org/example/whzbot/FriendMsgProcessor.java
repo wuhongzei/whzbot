@@ -32,9 +32,9 @@ public class FriendMsgProcessor extends MsgProcessorBase {
         if (msg instanceof LightApp) {
             JsonNode node = Json.fromString(((LightApp)msg).getContent());
             if (node != null) {
-                JsonNode str_node = node.get("meta.detail_1.qqdocurl");
+                JsonNode str_node = node.get("meta.detail_1.host.qqdocurl");
                 if (!(str_node instanceof JsonStringNode))
-                    this.debug(node.toString());
+                    reply("err");
                 else
                     reply(str_node.getContent());
             }
