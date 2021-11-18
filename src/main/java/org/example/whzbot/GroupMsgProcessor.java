@@ -2,6 +2,7 @@ package org.example.whzbot;
 
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.message.data.At;
+import net.mamoe.mirai.message.data.LightApp;
 import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.message.data.SingleMessage;
 
@@ -41,6 +42,8 @@ public class GroupMsgProcessor extends MsgProcessorBase{
             }
             else
                 is_at = true;
+        } else if (msg instanceof LightApp) {
+            return;
         }
 
         if (msg instanceof PlainText) {

@@ -129,12 +129,6 @@ public class JavaMain {
                 }
                 time++;
             }
-        /*notifyMaster(
-                bot,
-                String.format(
-                        "Bot disconnected %d * %d ^2/2",
-                        count, time)
-        );*/
         return String.format(
                 "Bot disconnected %d * %d ^2/2",
                 count, time);

@@ -80,4 +80,16 @@ public class StringHelper {
                 .replaceAll("\\\\t", "\t")
                 .replaceAll("\\\\s", "\\");
     }
+
+    public static String parseRichText(String rich, String type) {
+        int pos = rich.indexOf('[');
+        String target = String.format("\"mirai:%s\":", type);
+        if (target.equals(rich.substring(pos+1, pos+target.length()+1))) {
+            return rich.substring(
+                    pos+target.length()+1,
+                    rich.indexOf(']', pos)
+            );
+        }
+        return "";
+    }
 }
