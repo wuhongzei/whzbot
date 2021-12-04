@@ -10,4 +10,4 @@ f=feature,b=bug,u=update,m=modify
 6 u multi-page for long text
 7 f personalize naming
 8 f upload images
-9 b sc dice expr defaults d100
+9- b sc dice expr defaults d100
