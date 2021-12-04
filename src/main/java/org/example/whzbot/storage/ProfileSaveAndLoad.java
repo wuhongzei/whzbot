@@ -104,11 +104,23 @@ public class ProfileSaveAndLoad {
         }
     }
 
+    /**
+     * Load a json data file and flatten all nodes into a map.
+     * @param map A str-str mapping.
+     * @param path Path to json file
+     * @implNote Loads nothing if file is missing
+     * @implNote flattened name follows json.get structure.
+     */
+    public static void loadFlatJson(HashMap<String, String> map, String path) {
+        JsonNode root = loadJson(path);
+        root.flatten(map, "");
+    }
+
     public static void assertDir(String path, String usage) {
         File file = new File(path);
         if (!file.isDirectory()) {
             if (!file.mkdir()) {
-                System.err.printf("Failed to save %s: cannot create dir", usage);
+                System.out.printf("Failed to save %s: cannot create dir", usage);
             }
         }
     }

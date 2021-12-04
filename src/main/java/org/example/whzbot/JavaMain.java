@@ -29,8 +29,10 @@ public class JavaMain {
     public static long master_qq = 1195693771L;
     public static long bot_qq = 2247902937L;
     public static String password = "20000506wwwhz2";
-    public static final String version = "2.5.1.63";
+    public static final String version = "2.5.1.64";
     public static String working_dir = "F:\\work\\java\\wherai_bot\\working_dictionary";
+    public static String resource_dir = "";
+    public static String storing_dir = "";
     public static String setting_path = "settings.whz";
     public static boolean running;
     public static int offline_facter = 1;
@@ -162,6 +164,16 @@ public class JavaMain {
             node = setting.get("working_dir");
             if (node instanceof JsonStringNode)
                 working_dir = node.getContent();
+            node = setting.get("resource_dir");
+            if (node instanceof JsonStringNode)
+                resource_dir = node.getContent();
+            else
+                resource_dir = working_dir + "\\resources";
+            node = setting.get("storing_dir");
+            if (node instanceof JsonStringNode)
+                storing_dir = node.getContent();
+            else
+                storing_dir = working_dir + "\\data";
         }
     }
 

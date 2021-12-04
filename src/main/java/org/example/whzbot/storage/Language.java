@@ -25,7 +25,8 @@ public class Language {
     }
     public void loadFromDist(String dir_path) {
         ProfileSaveAndLoad.loadMap(this.global_variables, dir_path + "/Variables.whz");
-        ProfileSaveAndLoad.loadMap(this.help_doc, dir_path + "/HelpDoc.whz");
+        ProfileSaveAndLoad.loadFlatJson(this.help_doc, dir_path + "/HelpDoc.whz");
+        ProfileSaveAndLoad.loadMap(this.help_doc, dir_path + "/Tarot.whz");
         ProfileSaveAndLoad.loadMap(this.card_translation, dir_path + "/CardTrans.whz");
     }
 
