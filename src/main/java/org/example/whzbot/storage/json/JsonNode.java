@@ -1,11 +1,14 @@
 package org.example.whzbot.storage.json;
 
+import java.util.Map;
+
 public class JsonNode {
     protected String name;
 
     protected JsonNode() {
         this.name = "";
     }
+
     protected JsonNode(String name) {
         this.name = name;
     }
@@ -15,13 +18,13 @@ public class JsonNode {
     }
 
     /*
-    * Get a node from a path.
-    * Param: a string with dot-split names.
-    *   path = "" iff get return self.
-    *   path = a.b return root.a.b
-    *   list node can be accessed as a[i], while return a node named a[i].
-    * Return: a node correspond to path, null if no node match.
-    * */
+     * Get a node from a path.
+     * Param: a string with dot-split names.
+     *   path = "" iff get return self.
+     *   path = a.b return root.a.b
+     *   list node can be accessed as a[i], while return a node named a[i].
+     * Return: a node correspond to path, null if no node match.
+     * */
     public JsonNode get(String path) {
         return path.isBlank() ? this : null;
     }
@@ -44,5 +47,12 @@ public class JsonNode {
 
     public String toString() {
         return String.format("\"%s\"", this.name);
+    }
+
+    public void flatten(Map<String, String> map, String path) {
+        if (this.name.isEmpty() || path.isEmpty())
+            map.put(path + this.name, "");
+        else
+            map.put(String.format("%s.%s", path, this.name), "");
     }
 }

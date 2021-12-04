@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 
 public class JsonObjectNode extends JsonNode implements Collection<JsonNode> {
     protected HashSet<JsonNode> content;
@@ -118,6 +119,17 @@ public class JsonObjectNode extends JsonNode implements Collection<JsonNode> {
         rtn.append("}");
         return rtn.toString();
     }
+
+    public void flatten(Map<String, String> map, String path) {
+        if (!(this.name.isEmpty() || path.isEmpty()))
+            path = String.format("%s.%s", path, this.name);
+        else
+            path = path + this.name;
+        for (JsonNode node : this.content) {
+            node.flatten(map, path);
+        }
+    }
+
 
     @Override
     public Iterator<JsonNode> iterator() {

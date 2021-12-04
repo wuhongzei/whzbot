@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 public class JsonListNode extends JsonNode implements List<JsonNode> {
     protected LinkedList<JsonNode> content;
@@ -188,5 +189,11 @@ public class JsonListNode extends JsonNode implements List<JsonNode> {
         }
         builder.append("]");
         return builder.toString();
+    }
+
+    public void flatten(Map<String, String> map, String path) {
+        for(JsonNode node : this.content) {
+            node.flatten(map, path);
+        }
     }
 }

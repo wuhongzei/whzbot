@@ -1,5 +1,7 @@
 package org.example.whzbot.storage.json;
 
+import java.util.Map;
+
 public class JsonStringNode extends JsonNode {
     protected String content;
 
@@ -17,5 +19,12 @@ public class JsonStringNode extends JsonNode {
 
     public String toString() {
         return String.format("\"%s\":\"%s\"", this.name, this.content);
+    }
+
+    public void flatten(Map<String, String> map, String path) {
+        if (this.name.isEmpty() || path.isEmpty())
+            map.put(path + this.name, this.content);
+        else
+            map.put(String.format("%s.%s", path, this.name), this.content);
     }
 }

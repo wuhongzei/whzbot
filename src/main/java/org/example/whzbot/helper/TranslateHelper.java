@@ -95,7 +95,7 @@ public class TranslateHelper {
         for (TranslateHelper rpc : this.replacements) {
             translated = translated.replaceAll(
                     String.format("\\{%d\\}", count),
-                    rpc.translate(lang_name)
+                    rpc.translate(lang_name).replaceAll("\\\\", "\\\\\\\\")
             );
             count++;
         }

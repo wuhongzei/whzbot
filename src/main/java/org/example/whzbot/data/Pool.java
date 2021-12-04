@@ -110,6 +110,7 @@ public class Pool {
                 );
 
                 ProfileSaveAndLoad.saveJson(user.toJson(), path);
+                user.setSaved();
             }
         }
         USER_POOL.clear();
@@ -126,6 +127,7 @@ public class Pool {
                 );
 
                 ProfileSaveAndLoad.saveJson(character.toJson(), path);
+                character.setSaved();
             }
         }
         CHARACTER_POOL.clear();
