@@ -14,6 +14,7 @@ public enum Command {
     on(CommandType.ADMIN, Permission.BOT_OWNER, "on"),
     off(CommandType.ADMIN, Permission.BOT_OWNER, "off"),
     exit(CommandType.ADMIN, Permission.BOT_OWNER, "exit"),
+    save(CommandType.ADMIN, Permission.BOT_OWNER, "save"),
     ban(CommandType.ADMIN, Permission.BOT_ADMIN, "ban"),
     un_ban(CommandType.ADMIN, Permission.BOT_ADMIN, "unban"),
     ban_group(CommandType.ADMIN, Permission.BOT_ADMIN, "bangroup"),
@@ -98,6 +99,7 @@ public enum Command {
     image(CommandType.GENERAL, Permission.ANYONE, "image"),
     app_share(CommandType.GENERAL, Permission.ANYONE, "share"),
     image_save(CommandType.WEB, Permission.BOT_ADMIN, "imgs"),
+    http(CommandType.WEB, Permission.ANYONE, "http"),
 
     unknown(CommandType.GENERAL, "unknown");
 

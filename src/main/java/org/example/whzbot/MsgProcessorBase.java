@@ -11,6 +11,7 @@ import org.example.whzbot.data.Pool;
 import org.example.whzbot.data.User;
 import org.example.whzbot.data.Character;
 import org.example.whzbot.helper.DiceHelper;
+import org.example.whzbot.helper.HttpHelper;
 import org.example.whzbot.helper.ProbabilityHelper;
 import org.example.whzbot.helper.RandomHelper;
 import org.example.whzbot.helper.TranslateHelper;
@@ -18,6 +19,8 @@ import org.example.whzbot.storage.CardDeck;
 import org.example.whzbot.storage.GlobalVariable;
 
 import java.util.UUID;
+
+import static org.example.whzbot.JavaMain.storing_dir;
 
 /*
  * Message Processor Base
@@ -489,6 +492,50 @@ public abstract class MsgProcessorBase {
                 reply(prob + " " + x);
                 break;
             }
+            case http: {
+                if (!holder.hasNext()) {
+                    reply("err no_arg");
+                    break;
+                }
+                String url = holder.getNextArg();
+                if (!holder.hasNext()) {
+                    HttpHelper.testFunc(url);
+                    reply("suc");
+                    break;
+                }
+                String file_name = holder.getNextArg();
+                int code = HttpHelper.httpToFile(
+                        url,
+                        storing_dir + "/download/" + file_name
+                );
+                reply(Integer.toString(code));
+                reply(url);
+                break;
+            }
+            case image: {
+                if (!holder.hasNext()) {
+                    reply("err no_arg");
+                    break;
+                }
+                switch (holder.getNextWord()) {
+                    case "find":
+                    case "search":
+                        if (!holder.hasNext())
+                            reply("err image.no_image");
+                        else {
+                            String url = holder.getRest();
+                            reply(HttpHelper.ascii2d(url));
+                        }
+                        break;
+                    case "save":
+                        reply("err whz.not_implemented");
+                        break;
+                    default:
+                        reply("err image.unknown_arg");
+                        break;
+                }
+                break;
+            }
             case reload:
                 if (event.getSender().getId() != JavaMain.master_qq) {
                     reply("Who are you?");
@@ -527,6 +574,13 @@ public abstract class MsgProcessorBase {
                         break;
                 }
                 break;
+            case save:
+                if (event.getSender().getId() != JavaMain.master_qq) {
+                    reply("Who are you?");
+                    break;
+                }
+                JavaMain.saveProfile();
+                reply("saved.");
             case exit:
                 if (event.getSender().getId() != JavaMain.master_qq) {
                     reply("Who are you?");

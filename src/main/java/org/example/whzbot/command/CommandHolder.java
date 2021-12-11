@@ -63,9 +63,38 @@ public class CommandHolder {
                 this.next_arg + " " + this.cmd_arg.substring(this.cursor);
     }
 
+    /**
+     * Get the next word in the argument.
+     * Space, numbers will terminate the word.
+     * Should check for has next before use.
+     *
+     * @return a string of word.
+     */
     public String getNextWord() {
         if (this.next_arg == null) {
             int i = StringHelper.endOfWord(this.cmd_arg, this.cursor);
+            String rtn = this.cmd_arg.substring(this.cursor, i);
+            this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+            return rtn;
+        } else {
+            String rtn = this.next_arg;
+            this.next_arg = null;
+            return rtn;
+        }
+    }
+
+    /**
+     * Return the next space-split string in arg.
+     * If next_arg is not null, return next_arg.
+     * Updates self so that only read once.
+     *
+     * @return a string of cmd argument.
+     */
+    public String getNextArg() {
+        if (this.next_arg == null) {
+            int i = this.cmd_arg.indexOf(' ', this.cursor);
+            if (i < 0)
+                i = this.cmd_arg.length();
             String rtn = this.cmd_arg.substring(this.cursor, i);
             this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
             return rtn;
