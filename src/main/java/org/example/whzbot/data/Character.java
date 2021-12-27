@@ -1,5 +1,6 @@
 package org.example.whzbot.data;
 
+import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonBooleanNode;
 import org.example.whzbot.storage.json.JsonLongNode;
 import org.example.whzbot.storage.json.JsonNode;
@@ -15,6 +16,7 @@ public class Character {
     String name;
     String nick_name = null;
     HashMap<String, Integer> skills = new HashMap<>();
+    HashMap<String, Integer> gacha = new HashMap<>();
     String image_path = null;
     String rule = null;
     boolean used = true;
@@ -70,6 +72,25 @@ public class Character {
         this.skills.clear();
     }
 
+    public int getGacha(String gacha_path) {
+        Integer i = this.gacha.get(gacha_path);
+        return i == null ? 0 : i;
+    }
+
+    public void increaseGacha(String gacha_path) {
+        Integer i = this.gacha.get(gacha_path);
+        this.gacha.put(gacha_path, i == null ? 1 : i + 1);
+        this.modified = true;
+    }
+
+    public void resetGacha(String gacha_path) {
+        Integer i = this.gacha.get(gacha_path);
+        this.modified = this.modified || (i != null && i != 0);
+        if (i != null)
+            this.gacha.put(gacha_path, 0);
+    }
+
+
     public void setRule(String new_rule) {
         this.rule = new_rule;
         this.modified = true;
@@ -116,20 +137,18 @@ public class Character {
         }
         rtn.add(skill_node);
 
+        Json.reconstruct(this.gacha, rtn, (Integer i) -> new JsonLongNode("", i.toString()));
+
         return rtn;
     }
 
     public void fromJson(JsonObjectNode json) {
-        JsonNode node = json.get("name");
-        this.name = node instanceof JsonStringNode ? node.getContent() : "";
-        node = json.get("nickname");
-        this.nick_name = node instanceof JsonStringNode ? node.getContent() : null;
-        node = json.get("rule");
-        this.rule = node instanceof JsonStringNode ? node.getContent() : null;
-        node = json.get("used");
-        this.used = (node instanceof JsonLongNode) && Boolean.parseBoolean(node.getContent());
+        this.name = Json.readString(json, "name", "");
+        this.nick_name = Json.readString(json, "nickname", null);
+        this.rule = Json.readString(json, "rule", null);
+        this.used = Json.readInt(json, "used", 1) != 0;
 
-        node = json.get("skills");
+        JsonNode node = json.get("skills");
         if (node instanceof JsonObjectNode) {
             for (JsonNode sub_node : (JsonObjectNode) node) {
                 if (sub_node instanceof JsonLongNode) {
@@ -139,6 +158,11 @@ public class Character {
                     );
                 }
             }
+        }
+
+        node = json.get("gacha");
+        if (node instanceof JsonObjectNode) {
+            node.flatten(this.gacha, "", Integer::parseInt);
         }
     }
 

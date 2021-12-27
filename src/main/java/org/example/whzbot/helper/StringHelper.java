@@ -68,7 +68,7 @@ public class StringHelper {
 
     public static String deSenString(String str) {
         return str.replaceAll("=", "\\=")
-                .replaceAll("|", "\\|")
+                .replaceAll("\\|", "\\|")
                 .replaceAll("\n", "\\n")
                 .replaceAll("\t", "\\t")
                 .replaceAll("\\\\", "\\s");
@@ -91,5 +91,15 @@ public class StringHelper {
             );
         }
         return "";
+    }
+
+    public static int count(String str, char target, int beg, int end) {
+        int rtn = 0;
+        int index = str.indexOf(target, beg);
+        while (index > -1 && index < end) {
+            index = str.indexOf(target, index + 1);
+            rtn++;
+        }
+        return rtn;
     }
 }

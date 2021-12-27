@@ -1,11 +1,14 @@
 package org.example.whzbot.storage.json;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
+import java.util.function.Function;
 
 public class JsonListNode extends JsonNode implements List<JsonNode> {
     protected LinkedList<JsonNode> content;
@@ -33,19 +36,22 @@ public class JsonListNode extends JsonNode implements List<JsonNode> {
         return this.content.contains(o);
     }
 
+    @NotNull
     @Override
     public Iterator<JsonNode> iterator() {
         return this.content.iterator();
     }
 
+    @NotNull
     @Override
     public Object[] toArray() {
         return new Object[0];
     }
 
+    @NotNull
     @Override
-    public <T> T[] toArray(T[] ts) {
-        return null;
+    public <T> T[] toArray(@NotNull T[] ts) {
+        return ts;
     }
 
     public boolean add(JsonNode item) {
@@ -58,27 +64,27 @@ public class JsonListNode extends JsonNode implements List<JsonNode> {
     }
 
     @Override
-    public boolean containsAll(Collection<?> collection) {
+    public boolean containsAll(@NotNull Collection<?> collection) {
         return false;
     }
 
     @Override
-    public boolean addAll(Collection<? extends JsonNode> collection) {
+    public boolean addAll(@NotNull Collection<? extends JsonNode> collection) {
         return false;
     }
 
     @Override
-    public boolean addAll(int i, Collection<? extends JsonNode> collection) {
+    public boolean addAll(int i, @NotNull Collection<? extends JsonNode> collection) {
         return false;
     }
 
     @Override
-    public boolean removeAll(Collection<?> collection) {
+    public boolean removeAll(@NotNull Collection<?> collection) {
         return false;
     }
 
     @Override
-    public boolean retainAll(Collection<?> collection) {
+    public boolean retainAll(@NotNull Collection<?> collection) {
         return false;
     }
 
@@ -117,16 +123,19 @@ public class JsonListNode extends JsonNode implements List<JsonNode> {
         return this.content.lastIndexOf(o);
     }
 
+    @NotNull
     @Override
     public ListIterator<JsonNode> listIterator() {
         return this.content.listIterator();
     }
 
+    @NotNull
     @Override
     public ListIterator<JsonNode> listIterator(int i) {
         return this.content.listIterator(i);
     }
 
+    @NotNull
     @Override
     public List<JsonNode> subList(int i, int j) {
         return this.content.subList(i, j);
@@ -150,8 +159,7 @@ public class JsonListNode extends JsonNode implements List<JsonNode> {
                 return this.content.get(index).get(
                         path.substring(path.indexOf(end_of_int + 1))
                 );
-            }
-            else {
+            } else {
                 return this.content.get(index).get("");
             }
         } catch (NumberFormatException e) {
@@ -192,8 +200,14 @@ public class JsonListNode extends JsonNode implements List<JsonNode> {
     }
 
     public void flatten(Map<String, String> map, String path) {
-        for(JsonNode node : this.content) {
+        for (JsonNode node : this.content) {
             node.flatten(map, path);
+        }
+    }
+
+    public <T> void flatten(Map<String, T> map, String path, Function<String, T> func) {
+        for (JsonNode node : this.content) {
+            node.flatten(map, path, func);
         }
     }
 }

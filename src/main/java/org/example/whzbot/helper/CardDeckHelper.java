@@ -1,11 +1,13 @@
-package org.example.whzbot.storage;
+package org.example.whzbot.helper;
 
 import java.util.ArrayList;
 
-import org.example.whzbot.helper.RandomHelper;
-import org.example.whzbot.helper.TranslateHelper;
+import org.example.whzbot.data.User;
+import org.example.whzbot.data.gacha.GachaItem;
+import org.example.whzbot.data.gacha.GachaPool;
+import org.example.whzbot.storage.GlobalVariable;
 
-public class CardDeck {
+public class CardDeckHelper {
     public static TranslateHelper draw(String deck_name) {
         String[] deck_set = GlobalVariable.CARD_DECK.get(deck_name);
         if (deck_set == null)
@@ -26,8 +28,7 @@ public class CardDeck {
             for (int i = 0; i < count; i++) {
                 cards[i] = card;
             }
-        }
-        else {
+        } else {
             cards = RandomHelper.drawFromArray(deck_set, count);
         }
 
@@ -36,8 +37,7 @@ public class CardDeck {
             count = deck_size;
             rtn = new TranslateHelper[count + 1];
             rtn[deck_size] = new TranslateHelper("deckEmpty", 1);
-        }
-        else {
+        } else {
             rtn = new TranslateHelper[count];
         }
         for (int i = 0; i < count; i++) {
@@ -74,5 +74,21 @@ public class CardDeck {
                 replacements.toArray(new TranslateHelper[0]),
                 3
         );
+    }
+
+    public static TranslateHelper gacha(String pool_name, User user) {
+        GachaPool pool = GlobalVariable.GACHA_POOL.get(pool_name);
+        if (pool == null)
+            return new TranslateHelper("deckNotFound", 1);
+        GachaItem item = pool.gacha(user);
+        while (item.getType() == 2) {
+            pool = GlobalVariable.GACHA_POOL.get(item.getDirection());
+            if (pool == null)
+                break;
+            item = pool.gacha(user);
+        }
+        if (item.getType() == 1)
+            return draw(item.getDirection());
+        return new TranslateHelper(item.getDirection(), 3);
     }
 }

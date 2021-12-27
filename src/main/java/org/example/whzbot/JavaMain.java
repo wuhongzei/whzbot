@@ -29,7 +29,7 @@ public class JavaMain {
     public static long master_qq = 1195693771L;
     public static long bot_qq = 2247902937L;
     public static String password = "20000506wwwhz2";
-    public static final String version = "2.5.1.65";
+    public static final String version = "2.6.0.66";
     public static String working_dir = "F:\\work\\java\\wherai_bot\\working_dictionary";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -178,18 +178,19 @@ public class JavaMain {
     }
 
     public static void loadAlias() {
-        GlobalVariable.loadCmdAlias(working_dir + "/resources/CmdAlias.whz");
-        GlobalVariable.loadDrawAlias(working_dir + "/resources/DrawAlias.whz");
-        GlobalVariable.loadPresetAlias(working_dir + "/resources/PresetAlias.whz");
+        GlobalVariable.loadCmdAlias(resource_dir + "/CmdAlias.whz");
+        GlobalVariable.loadDrawAlias(resource_dir + "/DrawAlias.whz");
+        GlobalVariable.loadPresetAlias(resource_dir + "/PresetAlias.whz");
     }
 
     public static void loadLanguage() {
-        GlobalVariable.loadLanguageList(working_dir + "/resources/Language.whz");
-        GlobalVariable.loadLanguages(working_dir + "/resources");
+        GlobalVariable.loadLanguageList(resource_dir + "/Language.whz");
+        GlobalVariable.loadLanguages(resource_dir);
     }
 
     public static void loadCardDeck() {
-        GlobalVariable.loadCardDeck(working_dir + "/resources/CardDeck.whz");
+        GlobalVariable.loadCardDeck(resource_dir + "/CardDeck.whz");
+        GlobalVariable.loadGachaPool(resource_dir + "/GachaPool.whz");
     }
 
     public static void saveProfile() {

@@ -84,10 +84,13 @@ public class JsonLoader {
 
                         j = this.str.indexOf(':', this.index + 1);
                         if (j > 0) {
-                            node_name = this.str.substring(this.index + 1, j);
-                            System.err.printf("Unenclosed quote from %d\n", this.index);
+                            System.err.printf("Unenclosed quote from %d, line %d\n",
+                                    this.index, StringHelper.count(this.str, '\n', 0, this.index)
+                            );
                         } else {
-                            System.err.printf("Missing content %d\n", this.index);
+                            System.err.printf("Missing content %d, line %d\n",
+                                    this.index, StringHelper.count(this.str, '\n', 0, this.index)
+                            );
                             return new JsonNode(node_name);
                         }
                     }
@@ -148,7 +151,9 @@ public class JsonLoader {
             j = j != -1 && c != -1 ? Math.min(j, c) : Math.max(j, c);
 
             if (j == -1) {
-                System.err.printf("unenclosed content %d\n", this.index);
+                System.err.printf("Unenclosed content %d, line %d\n",
+                        this.index, StringHelper.count(this.str, '\n', 0, this.index)
+                );
                 j = this.str.length();
             }
             String content = this.str.substring(this.index, j).trim();
@@ -164,10 +169,14 @@ public class JsonLoader {
     }
 
     private void warnMissingComma() {
-        System.err.printf("Missing comma before %d\n", this.index);
+        System.err.printf("Missing comma before %d, line %d\n",
+                this.index, StringHelper.count(this.str, '\n', 0, this.index)
+        );
     }
 
     private void warnExtraComma() {
-        System.err.printf("extra comma at %d\n", this.index);
+        System.err.printf("extra comma at %d, line %d\n",
+                this.index, StringHelper.count(this.str, '\n', 0, this.index)
+        );
     }
 }

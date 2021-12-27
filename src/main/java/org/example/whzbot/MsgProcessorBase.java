@@ -15,7 +15,7 @@ import org.example.whzbot.helper.HttpHelper;
 import org.example.whzbot.helper.ProbabilityHelper;
 import org.example.whzbot.helper.RandomHelper;
 import org.example.whzbot.helper.TranslateHelper;
-import org.example.whzbot.storage.CardDeck;
+import org.example.whzbot.helper.CardDeckHelper;
 import org.example.whzbot.storage.GlobalVariable;
 
 import java.util.UUID;
@@ -118,7 +118,7 @@ public abstract class MsgProcessorBase {
 
                 reply(new TranslateHelper(
                         "omkj",
-                        new TranslateHelper[]{CardDeck.draw(omkj_type)},
+                        new TranslateHelper[]{CardDeckHelper.draw(omkj_type)},
                         1).translate(lang_name)
                 );
                 break;
@@ -366,7 +366,7 @@ public abstract class MsgProcessorBase {
                 }
                 break;
             }
-            case draw:
+            case draw: {
                 String deck_name;
                 int draw_count;
 
@@ -397,7 +397,7 @@ public abstract class MsgProcessorBase {
                             "drawCard",
                             new TranslateHelper[]{
                                     new TranslateHelper(this.event.getSenderName()),
-                                    CardDeck.draw(deck_name)
+                                    CardDeckHelper.draw(deck_name)
                             },
                             1).translate(lang_name)
                     );
@@ -408,7 +408,7 @@ public abstract class MsgProcessorBase {
                                     new TranslateHelper(this.event.getSenderName()),
                                     new TranslateHelper(
                                             "|",
-                                            CardDeck.draw(deck_name, draw_count),
+                                            CardDeckHelper.draw(deck_name, draw_count),
                                             4
                                     )
                             },
@@ -416,6 +416,7 @@ public abstract class MsgProcessorBase {
                     ).translate(lang_name));
                 }
                 break;
+            }
             case help:
                 reply(new TranslateHelper(
                         holder.hasNext() ? holder.getNextWord() : "help",
@@ -423,9 +424,9 @@ public abstract class MsgProcessorBase {
                 ).translate(lang_name));
                 break;
 
-            case deck:
+            case deck: {
                 if (holder.hasNext()) {
-                    deck_name = holder.getNextWord();
+                    String deck_name = holder.getNextWord();
                     if (!GlobalVariable.CARD_DECK.containsKey(deck_name)) {
                         reply(new TranslateHelper("deckNotFound", 1).translate(lang_name));
                     } else {
@@ -457,6 +458,61 @@ public abstract class MsgProcessorBase {
                     ).translate(lang_name));
                 }
                 break;
+            }
+            case gacha: {
+                String gacha_name;
+                int draw_count;
+
+                if (holder.hasNext()) {
+                    gacha_name = holder.getNextWord();
+                } else {
+                    reply(new TranslateHelper(
+                            "illegalArgument", 1
+                    ).translate(lang_name));
+                    break;
+                }
+                if (holder.isNextInt()) {
+                    draw_count = Integer.parseInt(holder.getNextInt());
+                } else
+                    draw_count = 1;
+                if (draw_count > 100) {
+                    reply(new TranslateHelper(
+                            "drawLimited", 1
+                    ).translate(lang_name));
+                    break;
+                } else if (draw_count < 0) {
+                    reply(new TranslateHelper(
+                            "drawPositive", 1
+                    ).translate(lang_name));
+                    break;
+                } else if (draw_count == 1) {
+                    reply(new TranslateHelper(
+                            "drawCard",
+                            new TranslateHelper[]{
+                                    new TranslateHelper(user.getNickName()),
+                                    CardDeckHelper.gacha(gacha_name, user)
+                            },
+                            1).translate(lang_name)
+                    );
+                } else {
+                    TranslateHelper[] temp = new TranslateHelper[draw_count];
+                    for (int i = 0; i < draw_count; i++)
+                        temp[i] = CardDeckHelper.gacha(gacha_name, user);
+                    reply(new TranslateHelper(
+                            "drawCard",
+                            new TranslateHelper[]{
+                                    new TranslateHelper(user.getNickName()),
+                                    new TranslateHelper(
+                                            "|",
+                                            temp,
+                                            4
+                                    )
+                            },
+                            1
+                    ).translate(lang_name));
+                }
+                break;
+            }
             case bnmd: {
                 int x, n;
                 double p;
