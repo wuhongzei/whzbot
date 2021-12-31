@@ -1,6 +1,6 @@
 package org.example.whzbot.data.gacha;
 
-import org.example.whzbot.data.User;
+import org.example.whzbot.data.IUser;
 import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonNode;
 import org.example.whzbot.storage.json.JsonObjectNode;
@@ -86,7 +86,7 @@ public class GachaItem {
         return this.direction;
     }
 
-    public double fallIn(double d, User user) {
+    public double fallIn(double d, IUser user) {
         double para = 0;
         if (this.count_type > 0) {
             para = user.getCharacter().getGacha(this.store_path);
@@ -95,13 +95,13 @@ public class GachaItem {
         return d - prob;
     }
 
-    public void atGacha(User user) {
+    public void atGacha(IUser user) {
         if (this.count_type == 1) {
             user.getCharacter().resetGacha(this.store_path);
         }
     }
 
-    public void atMiss(User user) {
+    public void atMiss(IUser user) {
         if (this.count_type > 0) {
             user.getCharacter().increaseGacha(this.store_path);
         }

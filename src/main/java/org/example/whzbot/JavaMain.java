@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.Objects;
 
 import org.example.whzbot.storage.GlobalVariable;
 
@@ -29,7 +28,7 @@ public class JavaMain {
     public static long master_qq = 1195693771L;
     public static long bot_qq = 2247902937L;
     public static String password = "20000506wwwhz2";
-    public static final String version = "2.6.0.66";
+    public static final String version = "2.6.1.68";
     public static String working_dir = "F:\\work\\java\\wherai_bot\\working_dictionary";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -77,6 +76,7 @@ public class JavaMain {
         loadAlias();
         loadLanguage();
         loadCardDeck();
+        loadDefaultSetting();
 
         bot.getEventChannel().subscribeAlways(
                 FriendMessageEvent.class,
@@ -191,6 +191,12 @@ public class JavaMain {
     public static void loadCardDeck() {
         GlobalVariable.loadCardDeck(resource_dir + "/CardDeck.whz");
         GlobalVariable.loadGachaPool(resource_dir + "/GachaPool.whz");
+    }
+
+    public static void loadDefaultSetting() {
+        GlobalVariable.loadDefaultSetting(
+                resource_dir + "/GroupDefault.whz",
+                resource_dir + "/UserDefault.whz");
     }
 
     public static void saveProfile() {

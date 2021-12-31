@@ -2,7 +2,7 @@ package org.example.whzbot.helper;
 
 import java.util.ArrayList;
 
-import org.example.whzbot.data.User;
+import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.gacha.GachaItem;
 import org.example.whzbot.data.gacha.GachaPool;
 import org.example.whzbot.storage.GlobalVariable;
@@ -52,7 +52,7 @@ public class CardDeckHelper {
         ArrayList<TranslateHelper> replacements = new ArrayList<>();
         StringBuilder new_card = new StringBuilder();
         while (index_front != -1) {
-            new_card.append(card.substring(index_back, index_front));
+            new_card.append(card, index_back, index_front);
 
             index_back = card.indexOf('}', index_front + 1);
             if (index_back == -1)
@@ -76,19 +76,45 @@ public class CardDeckHelper {
         );
     }
 
-    public static TranslateHelper gacha(String pool_name, User user) {
+    public static TranslateHelper gacha(String pool_name, IUser user) {
         GachaPool pool = GlobalVariable.GACHA_POOL.get(pool_name);
         if (pool == null)
             return new TranslateHelper("deckNotFound", 1);
         GachaItem item = pool.gacha(user);
-        while (item.getType() == 2) {
-            pool = GlobalVariable.GACHA_POOL.get(item.getDirection());
-            if (pool == null)
+
+        String str = item.getDirection();
+
+        int index_front = str.indexOf('{');
+        int index_back = 0;
+        ArrayList<TranslateHelper> replacements = new ArrayList<>();
+        StringBuilder new_str = new StringBuilder();
+        while (index_front != -1) {
+            new_str.append(str, index_back, index_front);
+
+            index_back = str.indexOf('}', index_front + 1);
+            if (index_back == -1)
                 break;
-            item = pool.gacha(user);
+            String direction = str.substring(index_front + 1, index_back);
+            new_str.append(String.format("{%d}", replacements.size()));
+
+            if (item.getType() == 2)
+                replacements.add(gacha(direction, user));
+            else if (item.getType() == 1)
+                replacements.add(draw(direction));
+            else
+                replacements.add(new TranslateHelper(direction, 3));
+
+            index_back++;
+            index_front = str.indexOf('{', index_back + 1);
         }
-        if (item.getType() == 1)
-            return draw(item.getDirection());
-        return new TranslateHelper(item.getDirection(), 3);
+        if (index_front == -1)
+            new_str.append(str.substring(index_back));
+        else
+            new_str.append(str.substring(index_front));
+
+        return new TranslateHelper(
+                new_str.toString(),
+                replacements.toArray(new TranslateHelper[0]),
+                3);
     }
 }

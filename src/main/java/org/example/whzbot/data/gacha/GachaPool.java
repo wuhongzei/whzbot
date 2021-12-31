@@ -1,5 +1,6 @@
 package org.example.whzbot.data.gacha;
 
+import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.User;
 import org.example.whzbot.storage.json.JsonListNode;
 import org.example.whzbot.storage.json.JsonNode;
@@ -44,7 +45,7 @@ public class GachaPool {
         return this.name;
     }
 
-    public GachaItem gacha(User user) {
+    public GachaItem gacha(IUser user) {
         Random rnd = new Random();
         double d = rnd.nextDouble();
 

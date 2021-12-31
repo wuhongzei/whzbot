@@ -19,6 +19,7 @@ public class Group {
         this.group_setting = new HashMap<>();
         this.group_id = 0;
     }
+
     public Group(long id) {
         this.group_id = id;
         this.member_pool = new HashMap<>();
@@ -33,12 +34,13 @@ public class Group {
 
     public Member getMember(long id) {
         Member rtn = this.member_pool.get(id);
-        return rtn != null ? rtn : new Member(this.group_id, id);
+        return rtn != null ? rtn : new Member(this.group_id, Pool.getUser(id));
     }
 
     public boolean hasChanged() {
         return this.modified;
     }
+
     public void setSaved() {
         this.modified = false;
     }
@@ -55,6 +57,7 @@ public class Group {
 
         return rtn;
     }
+
     public void fromJson(JsonObjectNode json) {
         JsonNode node = json.get("skills");
         if (node instanceof JsonObjectNode) {

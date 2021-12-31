@@ -194,7 +194,7 @@ public class CommandHolder {
     }
 
     public static boolean isCommand(String text) {
-        return text.length() > 2 &&
+        return text.length() >= 2 &&
                 (text.charAt(0) == '.' || text.charAt(0) == '\u3002') &&
                 (text.charAt(1) != '.' && text.charAt(1) != '\u3002');
     }

@@ -3,7 +3,7 @@ f=feature,b=bug,u=update,m=modify
 2 f math-variable
 3 u update document #help_doc is done
 3.1 f automatic detect and load json/xml/simple-equal format
-3.3 move document to json for more readability
+3.3- move document to json for more readability
 4 f more executable text = 3.2
 5- b '\' at end line causes error
 5.1- b '\(1)' replaced with '(1)'

@@ -1,7 +1,7 @@
 package org.example.whzbot.command;
 
 
-import org.example.whzbot.data.User;
+import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.Character;
 import org.example.whzbot.helper.MinHeap;
 import org.example.whzbot.helper.RandomHelper;
@@ -31,7 +31,7 @@ public class CommandHelper {
      * set new_value old_value skill_name
      * mod new_value old_value(+-=)dice_expr skill_name
      */
-    public static String set_skill(User user, CommandHolder holder) {
+    public static String set_skill(IUser user, CommandHolder holder) {
         Character character = user.getCharacter();
         String skill_name = null;
         if (holder.isNextWord()) {
@@ -165,7 +165,7 @@ public class CommandHelper {
      * for each round, results split by ','
      * The last element must be a proper expression
      */
-    public static String roll_dice(User user, CommandHolder holder) {
+    public static String roll_dice(IUser user, CommandHolder holder) {
         // .r (h)(count=1#)(number=1)(d dice=100) (b bonus=0) (p -bonus=0) \
         //      (k pick=0)
         int round = 1;
@@ -180,8 +180,6 @@ public class CommandHelper {
                 assert w == null;
             }
         }
-        if (!holder.hasNext()) //.r|
-            return "err arg_null";
         if (holder.isNextInt()) { //.r c
             number = Integer.parseInt(holder.getNextInt());
             if (!holder.hasNext()) //.r c|
@@ -190,7 +188,7 @@ public class CommandHelper {
             number = 1;
         }
         String w;
-        int dice = 100;
+        int dice = user.getSetting("dice.default_dice", 100);
         int bonus = 0;
         int pick = 0;
 
@@ -200,8 +198,7 @@ public class CommandHelper {
             switch (w) {
                 case "d":
                     if (!holder.isNextInt())
-                        return "err arg_after_d";
-                    dice = Integer.parseInt(holder.getNextInt());
+                        dice = Integer.parseInt(holder.getNextInt());
                     break;
                 case "#":
                     round = number;
@@ -550,7 +547,7 @@ public class CommandHelper {
         return rtn;
     }
 
-    public static String roll_det(User user, CommandHolder holder) {
+    public static String roll_det(IUser user, CommandHolder holder) {
         int cutoff;
         Character character = user.getCharacter();
         if (holder.isNextInt()) {
@@ -637,7 +634,7 @@ public class CommandHelper {
         return builder.toString();
     }
 
-    public static String san_check(User user, CommandHolder holder) {
+    public static String san_check(IUser user, CommandHolder holder) {
         Character c = user.getCharacter();
         int san = c.getSkill("san");
         //if (san == -1)
@@ -708,7 +705,7 @@ public class CommandHelper {
      * fal +change new_val det_result/old_val
      * fal new_val det_result/old_val
      */
-    public static String enhance(User user, CommandHolder holder) {
+    public static String enhance(IUser user, CommandHolder holder) {
         Character character = user.getCharacter();
         String skill_name;
         int skill_val;

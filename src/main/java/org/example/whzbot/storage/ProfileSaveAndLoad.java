@@ -43,7 +43,7 @@ public class ProfileSaveAndLoad {
             file_content = "";
         }
         int index = 0;
-        int end_line = 0;
+        int end_line;
         while (index < file_content.length()) {
             end_line = file_content.indexOf('\n', index);
             if (end_line == -1)
@@ -106,7 +106,8 @@ public class ProfileSaveAndLoad {
 
     /**
      * Load a json data file and flatten all nodes into a map.
-     * @param map A str-str mapping.
+     *
+     * @param map  A str-str mapping.
      * @param path Path to json file
      * @implNote Loads nothing if file is missing
      * @implNote flattened name follows json.get structure.

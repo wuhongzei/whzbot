@@ -17,12 +17,15 @@ public enum Permission {
     ALL(13);
 
     private final int level;
+
     Permission(int l) {
         this.level = l;
     }
+
     public int getLevel() {
         return this.level;
     }
+
     public boolean hasPermit(Permission require, Permission has) {
         int r = require.getLevel();
         int h = has.getLevel();
@@ -32,5 +35,15 @@ public enum Permission {
         if (r == 13)
             return h > 4 && h % 4 > 1;
         return h % 4 >= r % 4 && (h >> 2) >= (r >> 2);
+    }
+
+    public static Permission mergePermit(int group, int bot) {
+        int level = group + bot * 4;
+        for (Permission p : Permission.values()) {
+            if (p.level == level) {
+                return p;
+            }
+        }
+        return Permission.ANYONE;
     }
 }

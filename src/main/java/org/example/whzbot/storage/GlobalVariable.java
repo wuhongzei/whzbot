@@ -24,6 +24,9 @@ public class GlobalVariable {
     public static final HashMap<String, String[]> CARD_DECK = new HashMap<>();
     public static final HashMap<String, GachaPool> GACHA_POOL = new HashMap<>();
 
+    public static final HashMap<String, String> DEFAULT_GROUP_SETTING = new HashMap<>();
+    public static final HashMap<String, String> DEFAULT_USER_SETTING = new HashMap<>();
+
     // Methods to load.
     public static void loadCmdAlias(String path) {
         ProfileSaveAndLoad.loadMap(CMD_ALIAS, path);
@@ -113,5 +116,10 @@ public class GlobalVariable {
                 GACHA_POOL.putIfAbsent(pool.getName(), pool);
             }
         }
+    }
+
+    public static void loadDefaultSetting(String path_group, String path_user) {
+        ProfileSaveAndLoad.loadFlatJson(DEFAULT_GROUP_SETTING, path_group);
+        ProfileSaveAndLoad.loadFlatJson(DEFAULT_USER_SETTING, path_user);
     }
 }

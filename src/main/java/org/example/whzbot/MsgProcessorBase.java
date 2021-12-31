@@ -7,8 +7,9 @@ import net.mamoe.mirai.message.data.MessageChain;
 
 import org.example.whzbot.command.CommandHelper;
 import org.example.whzbot.command.CommandHolder;
+import org.example.whzbot.command.Permission;
+import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.Pool;
-import org.example.whzbot.data.User;
 import org.example.whzbot.data.Character;
 import org.example.whzbot.helper.DiceHelper;
 import org.example.whzbot.helper.HttpHelper;
@@ -32,7 +33,8 @@ public abstract class MsgProcessorBase {
     public int event_type;
     public int msg_type;
     protected Bot bot;
-    protected User user;
+    protected IUser user;
+    protected Permission permission = Permission.ANYONE;
 
     protected MsgProcessorBase(AbstractMessageEvent event) {
         this.event = event;

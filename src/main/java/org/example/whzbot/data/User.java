@@ -5,15 +5,17 @@ import org.example.whzbot.storage.json.JsonNode;
 import org.example.whzbot.storage.json.JsonObjectNode;
 import org.example.whzbot.storage.json.JsonStringNode;
 
+import java.util.HashMap;
 import java.util.UUID;
 
-public class User {
+public class User implements IUser {
     boolean modified = false;
 
     long id;
     Character character = null;
     String lang = null;
     String name;
+    HashMap<String, String> setting = new HashMap<>();
 
     public User() {
         this.id = 0;
@@ -21,6 +23,11 @@ public class User {
 
     public User(long id) {
         this.id = id;
+    }
+
+    @Override
+    public long getId() {
+        return this.id;
     }
 
     public void setName(String n) {
@@ -78,6 +85,26 @@ public class User {
     public void initCharacter() {
         this.character = Pool.getCharacter();
         this.modified = true;
+    }
+
+    public boolean containSetting(String path) {
+        return this.setting.containsKey(path);
+    }
+
+    public String getSetting(String path, String val) {
+        String rtn = this.setting.get(path);
+        if (rtn != null)
+            return rtn;
+        rtn = GlobalVariable.DEFAULT_USER_SETTING.get(path);
+        return rtn == null ? val : rtn;
+    }
+
+    public int getSetting(String path, int val) {
+        String rtn = this.setting.get(path);
+        if (rtn != null)
+            return Integer.parseInt(rtn);
+        rtn = GlobalVariable.DEFAULT_USER_SETTING.get(path);
+        return rtn == null ? val : Integer.parseInt(rtn);
     }
 
     public JsonObjectNode toJson() {

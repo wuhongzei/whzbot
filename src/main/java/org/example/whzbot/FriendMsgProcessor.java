@@ -8,6 +8,7 @@ import net.mamoe.mirai.message.data.FlashImage;
 import net.mamoe.mirai.message.data.SingleMessage;
 
 import org.example.whzbot.command.CommandHolder;
+import org.example.whzbot.command.Permission;
 import org.example.whzbot.helper.StringHelper;
 import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.storage.json.Json;
@@ -18,6 +19,8 @@ public class FriendMsgProcessor extends MsgProcessorBase {
     public FriendMsgProcessor(FriendMessageEvent event) {
         super(event);
         this.event_type = 1;
+        if (this.user.getId() == JavaMain.master_qq)
+            this.permission = Permission.BOT_OWNER;
     }
 
     public void process() {
@@ -30,26 +33,40 @@ public class FriendMsgProcessor extends MsgProcessorBase {
         this.debug(msg.getClass().toString());
 
         if (msg instanceof LightApp) {
-            JsonNode node = Json.fromString(((LightApp)msg).getContent());
-            if (node != null) {
-                JsonNode str_node = node.get("meta.detail_1.host.qqdocurl");
-                if (!(str_node instanceof JsonStringNode)) {
-                    str_node = node.get("meta.detail_1.qqdocurl");
-                    if (!(str_node instanceof JsonStringNode))
-                        reply("Cannot recognize");
-                    else
+            if (this.user.getSetting("web.on", 0) != 0 &&
+                    this.user.getSetting("web.anti_app", 0) != 0
+            ) {
+                JsonNode node = Json.fromString(((LightApp) msg).getContent());
+                if (node != null) {
+                    JsonNode str_node = node.get("meta.detail_1.host.qqdocurl");
+                    if (!(str_node instanceof JsonStringNode)) {
+                        str_node = node.get("meta.detail_1.qqdocurl");
+                        if (!(str_node instanceof JsonStringNode))
+                            reply("Cannot recognize");
+                        else
+                            reply(str_node.getContent().replaceAll("\\\\/", "/"));
+                    } else
                         reply(str_node.getContent().replaceAll("\\\\/", "/"));
                 }
-                else
-                    reply(str_node.getContent().replaceAll("\\\\/", "/"));
+                this.debug(((LightApp) msg).getContent());
             }
-            this.debug(((LightApp)msg).getContent());
+            return ;
         } else if (msg instanceof Image) {
-            String url = Image.queryUrl((Image)msg);
-            reply(url);
+            if (this.user.getSetting("web.on", 0) != 0 &&
+                    this.user.getSetting("web.image_url", 0) != 0
+            ) {
+                String url = Image.queryUrl((Image) msg);
+                reply(url);
+            }
+            return ;
         } else if (msg instanceof FlashImage) {
-            String url = Image.queryUrl(((FlashImage) msg).getImage());
-            reply(url);
+            if (this.user.getSetting("web.on", 0) != 0 &&
+                    this.user.getSetting("web.image_url", 0) != 0
+            ) {
+                String url = Image.queryUrl(((FlashImage) msg).getImage());
+                reply(url);
+            }
+            return ;
         }
 
         if (msg instanceof PlainText) {
