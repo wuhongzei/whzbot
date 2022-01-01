@@ -3,6 +3,7 @@ package org.example.whzbot.helper;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -206,5 +207,17 @@ public class HttpHelper {
 
         search_result = getBody(client, request);
         return search_result;
+    }
+
+    public static boolean isUri(String url) {
+        try {
+            // To reduce risk, only http links are allowed.
+            if (url.indexOf("http://") != 0 && url.indexOf("https://") != 0)
+                return false;
+            URI uri = new URI(url);
+            return true;
+        } catch (URISyntaxException e) {
+            return false;
+        }
     }
 }

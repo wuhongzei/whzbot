@@ -1,8 +1,10 @@
 package org.example.whzbot.data;
 
+import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonLongNode;
 import org.example.whzbot.storage.json.JsonNode;
 import org.example.whzbot.storage.json.JsonObjectNode;
+import org.example.whzbot.storage.json.JsonStringNode;
 
 import java.util.HashMap;
 
@@ -12,7 +14,7 @@ public class Group {
 
     long group_id;
     HashMap<Long, Member> member_pool;
-    HashMap<String, Long> group_setting;
+    HashMap<String, String> group_setting;
 
     public Group() {
         this.member_pool = new HashMap<>();
@@ -26,10 +28,18 @@ public class Group {
         this.group_setting = new HashMap<>();
     }
 
-    public long changeSetting(String name, long value) {
-        Long rtn = this.group_setting.put(name, value);
+    public String changeSetting(String name, String value) {
+        String rtn = this.group_setting.put(name, value);
         this.modified = true;
-        return rtn != null ? rtn : -1;
+        return rtn != null ? rtn : "";
+    }
+
+    public String getSetting(String path) {
+        return this.group_setting.get(path);
+    }
+
+    public String removeSetting(String path) {
+        return this.group_setting.remove(path);
     }
 
     public Member getMember(long id) {
@@ -47,25 +57,24 @@ public class Group {
 
     public JsonObjectNode toJson() {
         JsonObjectNode rtn = new JsonObjectNode();
-        JsonObjectNode set_node = new JsonObjectNode();
-        for (String skill_name : this.group_setting.keySet()) {
-            set_node.add(new JsonLongNode(
-                    skill_name, String.valueOf(this.group_setting.get(skill_name))
-            ));
-        }
+        JsonObjectNode set_node = new JsonObjectNode("setting");
+        Json.reconstruct(
+                this.group_setting, set_node,
+                (String str) -> new JsonStringNode("", str)
+        );
         rtn.add(set_node);
 
         return rtn;
     }
 
     public void fromJson(JsonObjectNode json) {
-        JsonNode node = json.get("skills");
+        JsonNode node = json.get("setting");
         if (node instanceof JsonObjectNode) {
             for (JsonNode sub_node : (JsonObjectNode) node) {
-                if (sub_node instanceof JsonLongNode) {
+                if (sub_node instanceof JsonStringNode) {
                     this.group_setting.put(
                             sub_node.getName(),
-                            Long.parseLong(sub_node.getContent())
+                            sub_node.getContent()
                     );
                 }
             }

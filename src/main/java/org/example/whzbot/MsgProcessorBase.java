@@ -5,6 +5,7 @@ import net.mamoe.mirai.event.events.AbstractMessageEvent;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.data.MessageChain;
 
+import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHelper;
 import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.command.Permission;
@@ -50,6 +51,7 @@ public abstract class MsgProcessorBase {
     public void reply(String str) {
         this.event.getSubject().sendMessage(str);
         this.debug(str);
+        this.user.setStorage("last_reply", str);
     }
 
     public void reply(MessageChain reply_chain) {
@@ -87,6 +89,13 @@ public abstract class MsgProcessorBase {
 
     protected int execute_command(CommandHolder holder) {
         String lang_name = user.getLang();
+        if (Command.hasPermit(holder.getCmd(), this.permission)) {
+            reply(new TranslateHelper(
+                    "no_permit",
+                    1
+            ).translate(lang_name));
+            return -1;
+        }
 
         String[] result;
         switch (holder.getCmd()) {
@@ -101,7 +110,7 @@ public abstract class MsgProcessorBase {
                 reply(new TranslateHelper(
                         "jrrp",
                         new String[]{this.event.getSenderName(), String.valueOf(rp)},
-                        1).translate("zh_cn")
+                        1).translate(lang_name)
                 );
                 break;
             case omkj:
@@ -578,11 +587,25 @@ public abstract class MsgProcessorBase {
                 switch (holder.getNextWord()) {
                     case "find":
                     case "search":
-                        if (!holder.hasNext())
-                            reply("err image.no_image");
+                        String cool_down_key = "image.search";
+                        if (!CoolDown.isCool(cool_down_key) &&
+                                !Permission.hasPermit(Permission.BOT_OWNER, this.permission)) {
+                            reply("image.cool_down" + (CoolDown.checkCoolDown(cool_down_key) / 1000));
+                            break;
+                        }
+                        if (!holder.hasNext()) {
+                            String url = user.getStorage("last_reply");
+                            if (!url.isEmpty() && HttpHelper.isUri(url)) {
+                                reply(HttpHelper.ascii2d(url));
+                                CoolDown.setCoolDown(cool_down_key, 120000);
+                            } else {
+                                reply("image.no_image");
+                            }
+                        }
                         else {
                             String url = holder.getRest();
                             reply(HttpHelper.ascii2d(url));
+                            CoolDown.setCoolDown(cool_down_key, 120000);
                         }
                         break;
                     case "save":
@@ -594,7 +617,27 @@ public abstract class MsgProcessorBase {
                 }
                 break;
             }
-            case reload:
+            case set: {
+                if (!holder.hasNext()) {
+                    reply("no_val");
+                    break;
+                }
+                String path = holder.getNextArg();
+
+                // replace some short path
+                if (path.equals("dd"))
+                    path = "dice.default_dice";
+
+                if (!holder.hasNext()) {
+                    user.removeSetting(path);
+                    reply("set.removed");
+                } else {
+                    user.changeSetting(path, holder.getNextArg());
+                    reply("set.changed");
+                }
+                break;
+            }
+            case reload: {
                 if (event.getSender().getId() != JavaMain.master_qq) {
                     reply("Who are you?");
                     break;
@@ -632,6 +675,7 @@ public abstract class MsgProcessorBase {
                         break;
                 }
                 break;
+            }
             case save:
                 if (event.getSender().getId() != JavaMain.master_qq) {
                     reply("Who are you?");

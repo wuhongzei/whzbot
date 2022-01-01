@@ -9,6 +9,7 @@ import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.message.data.SingleMessage;
 
 import org.example.whzbot.command.CommandHolder;
+import org.example.whzbot.command.Permission;
 import org.example.whzbot.data.Group;
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.helper.StringHelper;
@@ -25,6 +26,11 @@ public class GroupMsgProcessor extends MsgProcessorBase {
         this.event_type = 2;
         this.group = Pool.getGroup(this.event.getSubject().getId());
         this.user = this.group.getMember(this.event.getSender().getId());
+        this.permission = Permission.mergePermit(
+                ((net.mamoe.mirai.contact.Member) this.event.getSender())
+                        .getPermission().getLevel() + 1,
+                this.user.getId() == JavaMain.master_qq ? 0 : 2
+        );
     }
 
     public void process() {
@@ -67,19 +73,21 @@ public class GroupMsgProcessor extends MsgProcessorBase {
             }
             return;
         } else if (msg instanceof Image) {
-            if (this.user.getSetting("web.on", 0) != 0 &&
-                    this.user.getSetting("web.image_url", 0) != 0
-            ) {
+            if (this.user.getSetting("web.on", 0) != 0) {
                 String url = Image.queryUrl((Image) msg);
-                reply(url);
+                if (this.user.getSetting("web.image_url", 0) != 0)
+                    reply(url);
+                else
+                    user.setStorage("last_reply", url);
             }
             return;
         } else if (msg instanceof FlashImage) {
-            if (this.user.getSetting("web.on", 0) != 0 &&
-                    this.user.getSetting("web.image_url", 0) != 0
-            ) {
+            if (this.user.getSetting("web.on", 0) != 0) {
                 String url = Image.queryUrl(((FlashImage) msg).getImage());
-                reply(url);
+                if (this.user.getSetting("web.image_url", 0) != 0)
+                    reply(url);
+                else
+                    user.setStorage("last_reply", url);
             }
             return;
         }

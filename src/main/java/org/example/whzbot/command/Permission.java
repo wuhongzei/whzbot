@@ -26,7 +26,7 @@ public enum Permission {
         return this.level;
     }
 
-    public boolean hasPermit(Permission require, Permission has) {
+    public static boolean hasPermit(Permission require, Permission has) {
         int r = require.getLevel();
         int h = has.getLevel();
 
@@ -34,7 +34,10 @@ public enum Permission {
             return h > 2 && h % 4 != 0;
         if (r == 13)
             return h > 4 && h % 4 > 1;
-        return h % 4 >= r % 4 && (h >> 2) >= (r >> 2);
+        if (r % 4 == 1 || h % 4 != 0)
+            return h % 4 >= r % 4 && (h >> 2) >= (r >> 2);
+        else
+            return (h >> 2) >= (r >> 2);
     }
 
     public static Permission mergePermit(int group, int bot) {

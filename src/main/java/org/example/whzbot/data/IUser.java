@@ -32,4 +32,17 @@ public interface IUser {
 
     int getSetting(String setting, int default_value);
 
+    void changeSetting(String path, String value);
+
+    /**
+     * Used to reset some setting.
+     *
+     * @param path path to setting.
+     * @return
+     */
+    String removeSetting(String path);
+
+    String getStorage(String path);
+
+    void setStorage(String path, String value);
 }

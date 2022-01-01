@@ -16,6 +16,7 @@ public class User implements IUser {
     String lang = null;
     String name;
     HashMap<String, String> setting = new HashMap<>();
+    HashMap<String, JsonNode> storage = new HashMap<>();
 
     public User() {
         this.id = 0;
@@ -104,7 +105,35 @@ public class User implements IUser {
         if (rtn != null)
             return Integer.parseInt(rtn);
         rtn = GlobalVariable.DEFAULT_USER_SETTING.get(path);
-        return rtn == null ? val : Integer.parseInt(rtn);
+        try {
+            return rtn == null ? val : Integer.parseInt(rtn);
+        } catch (RuntimeException e) {
+            return val;
+        }
+    }
+
+    @Override
+    public void changeSetting(String path, String value) {
+        this.setting.put(path, value);
+        this.modified = true;
+    }
+
+    public String removeSetting(String path) {
+        this.modified = true;
+        return this.setting.remove(path);
+    }
+
+    @Override
+    public String getStorage(String path) {
+        JsonNode node = this.storage.get(path);
+        if (node != null)
+            return node.getContent();
+        else return "";
+    }
+
+    @Override
+    public void setStorage(String path, String value) {
+        this.storage.put(path, new JsonStringNode("", value));
     }
 
     public JsonObjectNode toJson() {

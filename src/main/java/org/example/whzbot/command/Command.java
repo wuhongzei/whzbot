@@ -115,4 +115,7 @@ public enum Command {
         }
         return Command.unknown;
     }
+    public static boolean hasPermit(Command cmd, Permission permit) {
+        return Permission.hasPermit(cmd.permission, permit);
+    }
 }

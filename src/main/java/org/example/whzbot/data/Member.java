@@ -80,18 +80,45 @@ public class Member implements IUser {
 
     @Override
     public String getSetting(String path, String val) {
+        String rtn = Pool.getGroup(this.group_id).getSetting(path);
+        if (rtn != null)
+            return rtn;
         if (this.user.containSetting(path))
-            return this.user.getSetting(path, "");
-        String rtn = GlobalVariable.DEFAULT_GROUP_SETTING.get(path);
+            return this.user.getSetting(path, val);
+        rtn = GlobalVariable.DEFAULT_GROUP_SETTING.get(path);
         return rtn == null ? val : rtn;
     }
 
     @Override
     public int getSetting(String path, int val) {
+        String rtn = Pool.getGroup(this.group_id).getSetting(path);
+        if (rtn == null)
+            rtn = GlobalVariable.DEFAULT_GROUP_SETTING.get(path);
         if (this.user.containSetting(path))
-            return Integer.parseInt(this.user.getSetting(path, ""));
-        String rtn = GlobalVariable.DEFAULT_GROUP_SETTING.get(path);
-        return rtn == null ? val : Integer.parseInt(rtn);
+            return this.user.getSetting(path, val);
+        try {
+            return rtn == null ? val : Integer.parseInt(rtn);
+        } catch (RuntimeException e) {
+            return val;
+        }
     }
 
+    @Override
+    public void changeSetting(String path, String value) {
+        Pool.getGroup(this.group_id).changeSetting(path, value);
+    }
+
+    public String removeSetting(String path) {
+        return Pool.getGroup(this.group_id).removeSetting(path);
+    }
+
+    @Override
+    public String getStorage(String path) {
+        return this.user.getStorage(path);
+    }
+
+    @Override
+    public void setStorage(String path, String value) {
+        this.user.setStorage(path, value);
+    }
 }
