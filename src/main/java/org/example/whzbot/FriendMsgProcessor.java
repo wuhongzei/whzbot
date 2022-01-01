@@ -33,8 +33,8 @@ public class FriendMsgProcessor extends MsgProcessorBase {
         this.debug(msg.getClass().toString());
 
         if (msg instanceof LightApp) {
-            if (this.user.getSetting("web.on", 0) != 0 &&
-                    this.user.getSetting("web.anti_app", 0) != 0
+            if (this.user.getSetting("web.on", 1) != 0 &&
+                    this.user.getSetting("web.anti_app", 1) != 0
             ) {
                 JsonNode node = Json.fromString(((LightApp) msg).getContent());
                 if (node != null) {
@@ -52,21 +52,23 @@ public class FriendMsgProcessor extends MsgProcessorBase {
             }
             return ;
         } else if (msg instanceof Image) {
-            if (this.user.getSetting("web.on", 0) != 0 &&
-                    this.user.getSetting("web.image_url", 0) != 0
-            ) {
+            if (this.user.getSetting("web.on", 1) != 0) {
                 String url = Image.queryUrl((Image) msg);
-                reply(url);
+                if (this.user.getSetting("web.image_url", 1) != 0)
+                    reply(url);
+                else
+                    user.setStorage("last_reply", url);
             }
-            return ;
+            return;
         } else if (msg instanceof FlashImage) {
-            if (this.user.getSetting("web.on", 0) != 0 &&
-                    this.user.getSetting("web.image_url", 0) != 0
-            ) {
+            if (this.user.getSetting("web.on", 1) != 0) {
                 String url = Image.queryUrl(((FlashImage) msg).getImage());
-                reply(url);
+                if (this.user.getSetting("web.image_url", 1) != 0)
+                    reply(url);
+                else
+                    user.setStorage("last_reply", url);
             }
-            return ;
+            return;
         }
 
         if (msg instanceof PlainText) {

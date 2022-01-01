@@ -89,10 +89,13 @@ public abstract class MsgProcessorBase {
 
     protected int execute_command(CommandHolder holder) {
         String lang_name = user.getLang();
-        if (Command.hasPermit(holder.getCmd(), this.permission)) {
+        if (!Command.hasPermit(holder.getCmd(), this.permission)) {
             reply(new TranslateHelper(
                     "no_permit",
-                    1
+                    new String[]{
+                            holder.getCmd().permission.toString(),
+                            this.permission.toString()
+                    }, 1
             ).translate(lang_name));
             return -1;
         }
@@ -601,8 +604,7 @@ public abstract class MsgProcessorBase {
                             } else {
                                 reply("image.no_image");
                             }
-                        }
-                        else {
+                        } else {
                             String url = holder.getRest();
                             reply(HttpHelper.ascii2d(url));
                             CoolDown.setCoolDown(cool_down_key, 120000);
