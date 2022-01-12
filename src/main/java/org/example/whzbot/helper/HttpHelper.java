@@ -27,7 +27,7 @@ public class HttpHelper {
             );
 
             System.out.println(response.statusCode());
-            System.out.println(response.body());
+            //System.out.println(response.body());
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -86,7 +86,7 @@ public class HttpHelper {
             e.printStackTrace();
         }
         if (form.isEmpty())
-            return "err network";
+            return "web.error";
         form = form.replaceAll("'", "\"");
 
         HashMap<String, String> arg = new HashMap<>();
@@ -128,7 +128,7 @@ public class HttpHelper {
         search_result = getBody(client, request);
 
         if (search_result.isEmpty())
-            return "err network";
+            return "web.error";
         i = search_result.indexOf("<div class='row item-box'>");
         int j = search_result.indexOf("\"/search/bovw/");
         String bvw_url = search_result.substring(

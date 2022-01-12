@@ -197,7 +197,7 @@ public class CommandHelper {
             w = holder.getNextWord();
             switch (w) {
                 case "d":
-                    if (!holder.isNextInt())
+                    if (holder.isNextInt())
                         dice = Integer.parseInt(holder.getNextInt());
                     break;
                 case "#":

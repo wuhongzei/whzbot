@@ -29,7 +29,7 @@ public class GroupMsgProcessor extends MsgProcessorBase {
         this.permission = Permission.mergePermit(
                 ((net.mamoe.mirai.contact.Member) this.event.getSender())
                         .getPermission().getLevel() + 1,
-                this.user.getId() == JavaMain.master_qq ? 0 : 2
+                this.user.getId() == JavaMain.master_qq ? 2 : 0
         );
     }
 
@@ -62,14 +62,15 @@ public class GroupMsgProcessor extends MsgProcessorBase {
                     JsonNode str_node = node.get("meta.detail_1.host.qqdocurl");
                     if (!(str_node instanceof JsonStringNode)) {
                         str_node = node.get("meta.detail_1.qqdocurl");
-                        if (!(str_node instanceof JsonStringNode))
-                            reply("Cannot recognize");
+                        if (!(str_node instanceof JsonStringNode)) {
+                            //reply("Cannot recognize");
+                            this.debug(((LightApp) msg).getContent());
+                        }
                         else
                             reply(str_node.getContent().replaceAll("\\\\/", "/"));
                     } else
                         reply(str_node.getContent().replaceAll("\\\\/", "/"));
                 }
-                this.debug(((LightApp) msg).getContent());
             }
             return;
         } else if (msg instanceof Image) {
