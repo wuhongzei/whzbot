@@ -11,6 +11,7 @@ import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.utils.BotConfiguration;
 
 import org.example.whzbot.data.Pool;
+import org.example.whzbot.data.game.GameManager;
 import org.example.whzbot.storage.ProfileSaveAndLoad;
 import org.example.whzbot.storage.json.JsonLoader;
 import org.example.whzbot.storage.json.JsonLongNode;
@@ -28,7 +29,7 @@ public class JavaMain {
     public static long master_qq = 1195693771L;
     public static long bot_qq = 2247902937L;
     public static String password = "20000506wwwhz2";
-    public static final String version = "2.6.2.72";
+    public static final String version = "2.7.0.74";
     public static String working_dir = "F:\\work\\java\\wherai_bot\\working_dictionary";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -77,6 +78,7 @@ public class JavaMain {
         loadLanguage();
         loadCardDeck();
         loadDefaultSetting();
+        GameManager.init(bot);
 
         bot.getEventChannel().subscribeAlways(
                 FriendMessageEvent.class,

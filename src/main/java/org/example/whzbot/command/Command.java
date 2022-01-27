@@ -89,10 +89,11 @@ public enum Command {
     bnmd(CommandType.MATH, Permission.ANYONE, "bnmd"), //binomial distribution
     nord(CommandType.MATH, Permission.ANYONE, "nord"), //normal distribution
 
-    image(CommandType.GENERAL, Permission.ANYONE, "image"),
-    app_share(CommandType.GENERAL, Permission.ANYONE, "share"),
+    image(CommandType.WEB, Permission.ANYONE, "image"),
+    app_share(CommandType.WEB, Permission.ANYONE, "share"),
     image_save(CommandType.WEB, Permission.BOT_ADMIN, "imgs"),
     http(CommandType.WEB, Permission.ANYONE, "http"),
+    game(CommandType.WEB, Permission.ANYONE, "game"),
 
     unknown(CommandType.GENERAL, "unknown");
 

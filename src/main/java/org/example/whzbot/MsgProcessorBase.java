@@ -12,6 +12,7 @@ import org.example.whzbot.command.Permission;
 import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.data.Character;
+import org.example.whzbot.data.game.GameManager;
 import org.example.whzbot.helper.DiceHelper;
 import org.example.whzbot.helper.HttpHelper;
 import org.example.whzbot.helper.ProbabilityHelper;
@@ -619,12 +620,27 @@ public abstract class MsgProcessorBase {
                 }
                 break;
             }
+            case game: {
+                if(!holder.hasNext()){
+                    reply("game.no_arg");
+                    break;
+                }
+                reply(GameManager.executeCmd(user, holder));
+                break;
+            }
             case set: {
                 if (!holder.hasNext()) {
-                    reply("no_val");
+                    reply("set.no_val");
                     break;
                 }
                 String path = holder.getNextArg();
+
+                if (path.equals("show") || path.equals("query")) {
+                    if (!holder.hasNext())
+                        break;
+                    reply(user.getSetting(holder.getNextArg(), ""));
+                    break;
+                }
 
                 // replace some short path
                 if (path.equals("dd"))

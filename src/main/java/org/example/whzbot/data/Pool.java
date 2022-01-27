@@ -1,5 +1,7 @@
 package org.example.whzbot.data;
 
+import org.example.whzbot.data.game.IGame;
+import org.example.whzbot.data.game.IMatch;
 import org.example.whzbot.storage.ProfileSaveAndLoad;
 import org.example.whzbot.storage.json.JsonObjectNode;
 
@@ -13,6 +15,7 @@ public class Pool {
     static HashMap<Long, User> USER_POOL = new HashMap<>();
     static HashMap<Long, Group> GROUP_POOL = new HashMap<>();
     static HashMap<UUID, Character> CHARACTER_POOL = new HashMap<>();
+    static HashMap<UUID, IMatch<? extends IGame>> MATCH_POOL = new HashMap<>();
 
     public static Group getGroup(long id) {
         Group rtn = GROUP_POOL.get(id);
@@ -90,7 +93,7 @@ public class Pool {
 
     public static void unloadGroups() {
         ProfileSaveAndLoad.assertDir(working_dir + "\\data\\groups", "groups");
-        for(long id : GROUP_POOL.keySet()) {
+        for (long id : GROUP_POOL.keySet()) {
             Group gp = GROUP_POOL.get(id);
             if (gp.hasChanged()) {
                 ProfileSaveAndLoad.saveJson(gp.toJson(), getGroupPath(id));
@@ -98,9 +101,10 @@ public class Pool {
         }
         GROUP_POOL.clear();
     }
+
     public static void unloadUsers() {
         ProfileSaveAndLoad.assertDir(working_dir + "\\data\\users", "users");
-        for(long id : USER_POOL.keySet()) {
+        for (long id : USER_POOL.keySet()) {
             User user = USER_POOL.get(id);
             String path = getUserPath(id);
             if (user.hasChanged()) {
@@ -115,9 +119,10 @@ public class Pool {
         }
         USER_POOL.clear();
     }
+
     public static void unloadCharacters() {
         ProfileSaveAndLoad.assertDir(working_dir + "\\data\\characters", "characters");
-        for(UUID uuid : CHARACTER_POOL.keySet()) {
+        for (UUID uuid : CHARACTER_POOL.keySet()) {
             Character character = CHARACTER_POOL.get(uuid);
             String path = getCharacterPath(uuid);
             if (character.hasChanged()) {
@@ -131,5 +136,31 @@ public class Pool {
             }
         }
         CHARACTER_POOL.clear();
+    }
+
+    public static void putMatch(IMatch<? extends IGame> match_in) {
+        MATCH_POOL.put(match_in.getUUID(), match_in);
+    }
+
+    public static IMatch<? extends IGame> getMatch(UUID uuid) {
+        IMatch<? extends IGame> rtn = MATCH_POOL.get(uuid);
+        if (rtn == null) {
+            String path = getMatchPath(uuid);
+            //rtn = new Character(uuid);
+            JsonObjectNode root = ProfileSaveAndLoad.loadJson(path);
+            //rtn.fromJson(root);
+            //CHARACTER_POOL.put(uuid, rtn);
+            return null;
+        }
+        return rtn;
+    }
+
+    public static String getMatchPath(UUID uuid) {
+        String str_uuid = uuid.toString();
+        return working_dir + "\\data\\matches\\" +
+                str_uuid.substring(0, 2) +
+                "\\" +
+                str_uuid +
+                ".json";
     }
 }

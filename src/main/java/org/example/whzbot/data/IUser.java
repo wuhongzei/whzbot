@@ -38,7 +38,7 @@ public interface IUser {
      * Used to reset some setting.
      *
      * @param path path to setting.
-     * @return
+     * @return Content in the path.
      */
     String removeSetting(String path);
 
