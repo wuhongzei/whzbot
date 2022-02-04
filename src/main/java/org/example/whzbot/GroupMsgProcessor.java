@@ -106,13 +106,13 @@ public class GroupMsgProcessor extends MsgProcessorBase {
                     debug("find @ not 0");
                 text = text.replaceFirst(String.format("@%s", this.bot.getNick()), "");
                 text = text.substring(StringHelper.skipSpace(text, 0));
-                this.debugString(text);
+                //this.debugString(text);
             }
             this.debug(text);
 
             if (!CommandHolder.isCommand(text))
                 return;
-            if ((text.equals("") || text.equals(" ")) && is_at) {
+            if ((text.isBlank()) && is_at) {
                 replyTranslated("bot.empty_call");
                 return;
             }
