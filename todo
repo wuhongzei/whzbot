@@ -12,4 +12,8 @@ f=feature,b=bug,u=update,m=modify
 8 f upload images
 8.1- download images
 8.2- search setu
+8.3 image processing
 9- b sc dice expr defaults d100
+10 f game
+10.1  play chess
+10.2  play chess with AI

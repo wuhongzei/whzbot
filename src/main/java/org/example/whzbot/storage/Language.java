@@ -33,7 +33,7 @@ public class Language {
     public String getVariable(String var) {
         String rtn = this.getVariableRecursive(var);
         if (rtn == null)
-            rtn = this.getDefault();
+            rtn = var;
         return rtn;
     }
     public String getHelpDoc(String var) {
@@ -48,13 +48,6 @@ public class Language {
             rtn = card;
         return rtn;
     }
-
-    private String getDefault() {
-        String rtn = this.global_variables.get("default");
-        if (rtn == null)
-            return "default";
-        return rtn;
-    }
     protected String getVariableRecursive(String var) {
         String rtn = this.global_variables.get(var);
         if (rtn == null)
@@ -67,7 +60,7 @@ public class Language {
             rtn = this.father.getHelpRecursive(var);
         return rtn;
     }
-    /*
+    /**
     * Translates a card, if translation exists.
     * @return The translated string, if exist,
     *       otherwise, the original string.

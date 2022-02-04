@@ -81,12 +81,12 @@ public class CommandHelper {
             int mod_val;
             switch (dice_result[0]) {
                 case "err":
-                    return "err d_" + dice_result[1];
+                    return "err dice." + dice_result[1];
                 case "rd_":
                 case "rdk":
                 case "rbp":
                     if (dice_result[dice_result.length - 1].indexOf('#') != -1)
-                        return "err #not_allow";
+                        return "err hash_not_allow";
                     mod_val = Integer.parseInt(dice_result[1]);
                     break;
                 default:
@@ -231,13 +231,13 @@ public class CommandHelper {
             }
         }
         if (number != 1 && bonus != 0)
-            return "err arg_coexist_c_and_b/p";
+            return "err coexist_c_bp";
         if (bonus != 0 && pick != 0)
-            return "err arg_coexist_b/p_and_k";
+            return "err coexist_bp_k";
         if (dice < 1)
-            return "err arg_dice<0";
+            return "err negative_dice";
         if (round > 10)
-            return "err arg_round_too_big";
+            return "err round_too_big";
         if (pick > number)
             pick = 0;
 
@@ -645,12 +645,12 @@ public class CommandHelper {
         //suc_dice
         buffer = _roll_dice_expr(holder).split(" ");
         if (buffer[0].equals("err")) {
-            return "err sc.l." + buffer[1];
+            return "err l." + buffer[1];
         }
         int s = Integer.parseInt(buffer[1]);
 
         if (!holder.hasNext())
-            return "err sc.incomplete";
+            return "err incomplete";
         if (holder.isNextSign())
             holder.getNextSign();
 
@@ -664,7 +664,7 @@ public class CommandHelper {
         if (holder.isNextInt())
             san = Integer.parseInt(holder.getNextInt());
         if (san == -1)
-            return "err sc.no_san";
+            return "err no_san";
 
         int dice = RandomHelper.hundred();
 

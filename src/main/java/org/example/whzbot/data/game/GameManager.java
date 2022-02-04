@@ -111,7 +111,7 @@ public class GameManager {
             case "begin": {
                 IMatch<? extends IGame> match = getMatch(user);
                 if (match == null)
-                    return "game.err_no_match";
+                    return "game.err_not_in_match";
                 if (match.begin()) {
                     for (long id : match.getPlayers()) {
                         send.accept(id, "game.begin");
@@ -124,23 +124,23 @@ public class GameManager {
             case "move": {
                 IMatch<? extends IGame> match = getMatch(user);
                 if (match == null)
-                    return "game.err_no_match";
+                    return "game.err_not_in_match";
                 if (match.getPhase() != 1)
                     return "game.err_not_playing";
                 if (match.getNextPlayer() != user.getId())
                     return "game.err_not_your_turn";
                 String move = holder.getNextArg();
                 if (match.move(move)) {
-                    send.accept(user.getId(), "game.updated " + match.getBoard());
                     if (match.getPhase() == 1) {
-                        send.accept(match.getNextPlayer(), "game.your_turn last_move=" + move);
+                        send.accept(match.getNextPlayer(), "game.last_move" + move);
+                        send.accept(user.getId(), "game.updated " + match.getBoard());
                     } else {
                         for (long id : match.getPlayers()) {
-                            send.accept(id, "game.end " + match.getResult(id));
+                            send.accept(id, "game.end" + match.getResult(id));
                             user.setStorage("game.live", "");
                         }
                     }
-                    return "game.moved";
+                    return "game.updated " + match.getBoard();
                 } else {
                     return "game.err_invalid_move";
                 }

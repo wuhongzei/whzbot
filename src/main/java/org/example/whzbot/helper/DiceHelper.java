@@ -59,25 +59,25 @@ public class DiceHelper {
         String name;
         switch (type) {
             case 0:
-                name = "rollFumble";
+                name = "dice.fumble";
                 break;
             case 1:
-                name = "rollFailure";
+                name = "dice.failure";
                 break;
             case 2:
-                name = "rollRegularSuccess";
+                name = "dice.regular_success";
                 break;
             case 3:
-                name = "rollHardSuccess";
+                name = "dice.hard_success";
                 break;
             case 4:
-                name = "rollExtremeSuccess";
+                name = "dice.extreme_success";
                 break;
             case 5:
-                name = "rollCriticalSuccess";
+                name = "dice.critical_success";
                 break;
             default:
-                name = "rollUnknownResultErr";
+                name = "dice.unknown_result";
         }
         return name;
     }

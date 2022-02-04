@@ -55,11 +55,24 @@ public abstract class MsgProcessorBase {
         this.user.setStorage("last_reply", str);
     }
 
+    public void replyTranslated(String str) {
+        reply(new TranslateHelper(str, 1).translate(user.getLang()));
+    }
+
+    public void replyTranslated(String str, String val) {
+        reply(new TranslateHelper(
+                str,
+                new String[]{user.getNickName(), val},
+                1
+        ).translate(user.getLang()));
+    }
+
     public void reply(MessageChain reply_chain) {
         this.event.getSubject().sendMessage(reply_chain);
     }
 
-    public void reply(String str, Contact someone) {
+    public void send(String str, Contact someone) {
+        someone.sendMessage(str);
     }
 
     public void replyQuote(String str) throws Exception {
@@ -94,6 +107,7 @@ public abstract class MsgProcessorBase {
             reply(new TranslateHelper(
                     "no_permit",
                     new String[]{
+                            user.getNickName(),
                             holder.getCmd().permission.toString(),
                             this.permission.toString()
                     }, 1
@@ -112,7 +126,7 @@ public abstract class MsgProcessorBase {
             case jrrp:
                 int rp = (int) (100 * RandomHelper.jrrpRandom(this.event.getSender().getId()));
                 reply(new TranslateHelper(
-                        "jrrp",
+                        "jrrp.reply",
                         new String[]{this.event.getSenderName(), String.valueOf(rp)},
                         1).translate(lang_name)
                 );
@@ -132,7 +146,7 @@ public abstract class MsgProcessorBase {
                     omkj_type = "omkj_type4";
 
                 reply(new TranslateHelper(
-                        "omkj",
+                        "omkj.reply",
                         new TranslateHelper[]{CardDeckHelper.draw(omkj_type)},
                         1).translate(lang_name)
                 );
@@ -163,15 +177,17 @@ public abstract class MsgProcessorBase {
 
                 if (has_cutoff) {
                     if (cutoff < 0 || cutoff > 100) {
-                        reply(new TranslateHelper("successRateErr", 1).translate(lang_name));
+                        reply(new TranslateHelper("roll_det.err_suc_rate", 1).translate(lang_name));
                     } else {
                         int d = RandomHelper.hundred();
-                        String result_type = DiceHelper.rollResultName(d, cutoff, 0);
+                        String result_type = DiceHelper.rollResultName(
+                                d, cutoff, user.getSetting("dice.rule", 0)
+                        );
 
                         TranslateHelper tr;
                         if (reason == null) {
                             tr = new TranslateHelper(
-                                    "rollSkill",
+                                    "roll_det.reply",
                                     new TranslateHelper[]{
                                             new TranslateHelper(this.event.getSenderName()),
                                             new TranslateHelper(skill_name),
@@ -181,7 +197,7 @@ public abstract class MsgProcessorBase {
                             );
                         } else {
                             tr = new TranslateHelper(
-                                    "rollSkillReason",
+                                    "roll_det.reply_reason",
                                     new TranslateHelper[]{
                                             new TranslateHelper(this.event.getSenderName()),
                                             new TranslateHelper(skill_name),
@@ -194,16 +210,16 @@ public abstract class MsgProcessorBase {
                         reply(String.format(tr.translate(lang_name), d, cutoff));
                     }
                 } else {
-                    reply(new TranslateHelper("unknownPropErr", 1).translate(lang_name));
+                    reply(new TranslateHelper("roll_det.err_unknown_prop", 1).translate(lang_name));
                 }
                 break;
             case roll:
                 result = CommandHelper.roll_dice(user, holder).split(" ", 2);
                 if (result[0].equals("err")) {
-                    reply(result[1]);
+                    reply("roll.err." + result[1]);
                 } else if (holder.hasNext()) {
                     reply(new TranslateHelper(
-                            "rollDiceReason",
+                            "roll.reply_reason",
                             new TranslateHelper[]{
                                     new TranslateHelper(user.getNickName()),
                                     new TranslateHelper(result[1]),
@@ -213,7 +229,7 @@ public abstract class MsgProcessorBase {
                     ).translate(lang_name));
                 } else {
                     reply(new TranslateHelper(
-                            "rollDice",
+                            "roll.reply",
                             new TranslateHelper[]{
                                     new TranslateHelper(user.getNickName()),
                                     new TranslateHelper(result[1]),
@@ -226,20 +242,27 @@ public abstract class MsgProcessorBase {
                 result = CommandHelper.set_skill(user, holder).split(" ");
                 switch (result[0]) {
                     case "err":
-                        reply(result[1]);
+                        reply(new TranslateHelper(
+                                "set_attr.err." + result[1], 1
+                        ).translate(lang_name));
                         break;
                     case "clr":
-                        reply(new TranslateHelper("propCleared", 1).
-                                translate(lang_name));
+                        reply(new TranslateHelper(
+                                "set_attr.clr",
+                                new String[]{user.getNickName()},
+                                1
+                        ).translate(lang_name));
                         break;
                     case "del":
                         reply(new TranslateHelper(
-                                "propDeleted", 1
+                                "set_attr.del",
+                                new String[]{user.getNickName(), result[1]},
+                                1
                         ).translate(lang_name));
                         break;
                     case "mod":
                         reply(new TranslateHelper(
-                                "stModify",
+                                "set_attr.mod",
                                 new TranslateHelper[]{
                                         new TranslateHelper(user.getNickName()),
                                         new TranslateHelper(result[3]),
@@ -252,7 +275,7 @@ public abstract class MsgProcessorBase {
                     case "set":
                         if (result.length > 3) {
                             reply(new TranslateHelper(
-                                    "stModify",
+                                    "set_attr.mod",
                                     new TranslateHelper[]{
                                             new TranslateHelper(user.getNickName()),
                                             new TranslateHelper(result[3]),
@@ -262,7 +285,7 @@ public abstract class MsgProcessorBase {
                             ).translate(lang_name));
                         } else {
                             reply(new TranslateHelper(
-                                    "stDetail",
+                                    "set_attr.set",
                                     new TranslateHelper[]{
                                             new TranslateHelper(user.getNickName()),
                                             new TranslateHelper(result[2]),
@@ -273,7 +296,7 @@ public abstract class MsgProcessorBase {
                         break;
                     case "show":
                         reply(new TranslateHelper(
-                                "stShow",
+                                "set_attr.show",
                                 new TranslateHelper[]{
                                         new TranslateHelper(user.getNickName()),
                                         new TranslateHelper(result[2]),
@@ -282,7 +305,9 @@ public abstract class MsgProcessorBase {
                         ).translate(lang_name));
                         break;
                     default:
-                        reply("unknown err");
+                        reply(new TranslateHelper(
+                                "set_attr.err.unknown", 1
+                        ).translate(lang_name));
                 }
                 break;
             case san_check:
@@ -318,14 +343,15 @@ public abstract class MsgProcessorBase {
                                 1
                         ).translate(lang_name));
                         break;
+                    case "err":
+                        reply(new TranslateHelper(
+                                "san_check.err" + result[1], 1
+                        ).translate(lang_name));
+                        break;
                     default:
-                        if ("san_unset".equals(result[1])) {
-                            reply(new TranslateHelper("sanEmpty", 1)
-                                    .translate(lang_name));
-                        } else {
-                            reply(new TranslateHelper("scInvalid", 1)
-                                    .translate(lang_name));
-                        }
+                        reply(new TranslateHelper(
+                                "san_check.err.unknown", 1
+                        ).translate(lang_name));
                         break;
                 }
                 break;
@@ -389,7 +415,7 @@ public abstract class MsgProcessorBase {
                     deck_name = holder.getNextWord();
                 } else {
                     reply(new TranslateHelper(
-                            "illegalArgument", 1
+                            "draw.illegal_arg", 1
                     ).translate(lang_name));
                     break;
                 }
@@ -399,17 +425,17 @@ public abstract class MsgProcessorBase {
                     draw_count = 1;
                 if (draw_count > 20) {
                     reply(new TranslateHelper(
-                            "drawLimited", 1
+                            "draw.limited", 1
                     ).translate(lang_name));
                     break;
                 } else if (draw_count < 0) {
                     reply(new TranslateHelper(
-                            "drawPositive", 1
+                            "draw.positive", 1
                     ).translate(lang_name));
                     break;
                 } else if (draw_count == 1) {
                     reply(new TranslateHelper(
-                            "drawCard",
+                            "draw.card",
                             new TranslateHelper[]{
                                     new TranslateHelper(this.event.getSenderName()),
                                     CardDeckHelper.draw(deck_name)
@@ -418,7 +444,7 @@ public abstract class MsgProcessorBase {
                     );
                 } else {
                     reply(new TranslateHelper(
-                            "drawCard",
+                            "draw.card",
                             new TranslateHelper[]{
                                     new TranslateHelper(this.event.getSenderName()),
                                     new TranslateHelper(
@@ -443,11 +469,14 @@ public abstract class MsgProcessorBase {
                 if (holder.hasNext()) {
                     String deck_name = holder.getNextWord();
                     if (!GlobalVariable.CARD_DECK.containsKey(deck_name)) {
-                        reply(new TranslateHelper("deckNotFound", 1).translate(lang_name));
+                        reply(new TranslateHelper(
+                                "deck.err.deck_not_found", 1
+                        ).translate(lang_name));
                     } else {
                         reply(new TranslateHelper(
-                                "showCardDeck",
+                                "deck.show",
                                 new TranslateHelper[]{
+                                        new TranslateHelper(),
                                         new TranslateHelper(deck_name),
                                         new TranslateHelper(
                                                 ", ",
@@ -460,7 +489,7 @@ public abstract class MsgProcessorBase {
                     }
                 } else {
                     reply(new TranslateHelper(
-                            "listCardDeck",
+                            "deck.list",
                             new TranslateHelper[]{
                                     new TranslateHelper(),
                                     new TranslateHelper(
@@ -482,7 +511,7 @@ public abstract class MsgProcessorBase {
                     gacha_name = holder.getNextWord();
                 } else {
                     reply(new TranslateHelper(
-                            "illegalArgument", 1
+                            "draw.illegal_arg", 1
                     ).translate(lang_name));
                     break;
                 }
@@ -492,17 +521,17 @@ public abstract class MsgProcessorBase {
                     draw_count = 1;
                 if (draw_count > 100) {
                     reply(new TranslateHelper(
-                            "drawLimited", 1
+                            "draw.limited", 1
                     ).translate(lang_name));
                     break;
                 } else if (draw_count < 0) {
                     reply(new TranslateHelper(
-                            "drawPositive", 1
+                            "draw.positive", 1
                     ).translate(lang_name));
                     break;
                 } else if (draw_count == 1) {
                     reply(new TranslateHelper(
-                            "drawCard",
+                            "draw.card",
                             new TranslateHelper[]{
                                     new TranslateHelper(user.getNickName()),
                                     CardDeckHelper.gacha(gacha_name, user)
@@ -514,7 +543,7 @@ public abstract class MsgProcessorBase {
                     for (int i = 0; i < draw_count; i++)
                         temp[i] = CardDeckHelper.gacha(gacha_name, user);
                     reply(new TranslateHelper(
-                            "drawCard",
+                            "draw.card",
                             new TranslateHelper[]{
                                     new TranslateHelper(user.getNickName()),
                                     new TranslateHelper(
@@ -585,16 +614,20 @@ public abstract class MsgProcessorBase {
             }
             case image: {
                 if (!holder.hasNext()) {
-                    reply("err no_arg");
+                    reply("no_arg");
                     break;
                 }
                 switch (holder.getNextWord()) {
                     case "find":
                     case "search":
-                        String cool_down_key = "image.search";
+                        replyTranslated("whz.disabled");
+                        break;
+                        /*String cool_down_key = "image.search";
                         if (!CoolDown.isCool(cool_down_key) &&
                                 !Permission.hasPermit(Permission.BOT_OWNER, this.permission)) {
-                            reply("image.cool_down" + (CoolDown.checkCoolDown(cool_down_key) / 1000));
+                            replyTranslated("image.cool_down",
+                                    String.valueOf((CoolDown.checkCoolDown(cool_down_key) / 1000))
+                            );
                             break;
                         }
                         if (!holder.hasNext()) {
@@ -603,25 +636,25 @@ public abstract class MsgProcessorBase {
                                 reply(HttpHelper.ascii2d(url));
                                 CoolDown.setCoolDown(cool_down_key, 120000);
                             } else {
-                                reply("image.no_image");
+                                replyTranslated("image.no_image");
                             }
                         } else {
                             String url = holder.getRest();
                             reply(HttpHelper.ascii2d(url));
                             CoolDown.setCoolDown(cool_down_key, 120000);
                         }
-                        break;
+                        break;*/
                     case "save":
-                        reply("err whz.not_implemented");
+                        replyTranslated("whz.not_implemented");
                         break;
                     default:
-                        reply("err image.unknown_arg");
+                        replyTranslated("image.unknown_arg");
                         break;
                 }
                 break;
             }
             case game: {
-                if(!holder.hasNext()){
+                if (!holder.hasNext()) {
                     reply("game.no_arg");
                     break;
                 }
@@ -630,28 +663,65 @@ public abstract class MsgProcessorBase {
             }
             case set: {
                 if (!holder.hasNext()) {
-                    reply("set.no_val");
+                    replyTranslated("set.no_val");
                     break;
                 }
                 String path = holder.getNextArg();
 
                 if (path.equals("show") || path.equals("query")) {
-                    if (!holder.hasNext())
+                    if (!holder.hasNext()) {
+                        replyTranslated("set.no_arg");
                         break;
-                    reply(user.getSetting(holder.getNextArg(), ""));
+                    }
+                    path = holder.getNextArg();
+                    if (!GlobalVariable.DEFAULT_USER_SETTING.containsKey(path)
+                            && !GlobalVariable.DEFAULT_GROUP_SETTING.containsKey(path))
+                        replyTranslated("set.invalid_key");
+                    else
+                        replyTranslated("set.reply",
+                                user.getSetting(path, "null")
+                        );
                     break;
                 }
 
                 // replace some short path
                 if (path.equals("dd"))
                     path = "dice.default_dice";
+                if (path.equals("rule"))
+                    path = "dice.rule";
+                if (path.equals("bot"))
+                    path = "bot.on";
 
+                if (!GlobalVariable.DEFAULT_USER_SETTING.containsKey(path)
+                    && !GlobalVariable.DEFAULT_GROUP_SETTING.containsKey(path))
+                    replyTranslated("set.invalid_key");
+                else {
+                    if (!holder.hasNext()) {
+                        user.removeSetting(path);
+                        replyTranslated("set.removed");
+                    } else {
+                        String val = holder.getNextArg();
+                        if (val.equals("on"))
+                            val = "1";
+                        else if (val.equals("off"))
+                            val = "0";
+                        user.changeSetting(path, val);
+                        replyTranslated("set.changed");
+                    }
+                }
+                break;
+            }
+            case lang: {
                 if (!holder.hasNext()) {
-                    user.removeSetting(path);
-                    reply("set.removed");
+                    replyTranslated("lang.current", lang_name);
                 } else {
-                    user.changeSetting(path, holder.getNextArg());
-                    reply("set.changed");
+                    String new_lang_name = holder.getNextArg();
+                    if (GlobalVariable.LANGUAGE_LIST.containsKey(new_lang_name)) {
+                        user.setLang(new_lang_name);
+                        replyTranslated("lang.changed");
+                    } else {
+                        replyTranslated("lang.unknown_lang");
+                    }
                 }
                 break;
             }
@@ -661,8 +731,8 @@ public abstract class MsgProcessorBase {
                     break;
                 }
                 if (!holder.hasNext()) {
-                    reply(new TranslateHelper(
-                            "illegalArgument", 1
+                    replyTranslated(new TranslateHelper(
+                            "illegal_arg", 1
                     ).translate(lang_name));
                     break;
                 }

@@ -113,7 +113,7 @@ public class GlobalVariable {
         for (JsonNode node : json) {
             if (node instanceof JsonListNode) {
                 GachaPool pool = new GachaPool((JsonListNode) node);
-                GACHA_POOL.putIfAbsent(pool.getName(), pool);
+                GACHA_POOL.put(pool.getName(), pool);
             }
         }
     }

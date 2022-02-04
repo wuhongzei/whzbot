@@ -7,7 +7,9 @@ import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.FlashImage;
 import net.mamoe.mirai.message.data.SingleMessage;
 
+import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHolder;
+import org.example.whzbot.command.CommandType;
 import org.example.whzbot.command.Permission;
 import org.example.whzbot.helper.StringHelper;
 import org.example.whzbot.helper.TranslateHelper;
@@ -82,11 +84,71 @@ public class FriendMsgProcessor extends MsgProcessorBase {
             CommandHolder holder = new CommandHolder(text, 1);
             this.debug(holder.getName());
 
-            int rtn = super.execute_command(holder);
-            if (rtn == 0) {
-                reply(new TranslateHelper(
-                        "unknownCommand", 1
-                ).translate(user.getLang()));
+            boolean inhibited = false;
+            if (user.getSetting("bot.on", 1) == 0 &&
+                    (holder.getCmd().type != CommandType.ADMIN ||
+                            holder.getCmd() != Command.set)
+            ) {
+                inhibited = true;
+            }
+            switch (holder.getCmd().type) {
+                case DICE:
+                    if (user.getSetting("dice.on", 1) == 0) {
+                        replyTranslated("bot.inhibited");
+                        inhibited = true;
+                    }
+                    break;
+                case TAROT:
+                    if (user.getSetting("tarot.on", 1) == 0) {
+                        replyTranslated("bot.inhibited");
+                        inhibited = true;
+                    }
+                    break;
+                case SIMCHAT:
+                    if (user.getSetting("simple_chat.on", 1) == 0) {
+                        replyTranslated("bot.inhibited");
+                        inhibited = true;
+                    }
+                    break;
+                case MCSERVER:
+                    if (user.getSetting("mc_server.on", 0) == 0) {
+                        replyTranslated("bot.inhibited");
+                        inhibited = true;
+                    }
+                    break;
+                case MATH:
+                    if (user.getSetting("math.on", 1) == 0) {
+                        replyTranslated("bot.inhibited");
+                        inhibited = true;
+                    }
+                    break;
+                case GROUP:
+                    if (user.getSetting("group.on", 0) == 0) {
+                        replyTranslated("bot.inhibited");
+                        inhibited = true;
+                    }
+                    break;
+                case WEB:
+                    if (user.getSetting("web.on", 1) == 0) {
+                        replyTranslated("bot.inhibited");
+                        inhibited = true;
+                    }
+                    break;
+                case GENERAL:
+                    if (user.getSetting("general.on", 1) == 0) {
+                        replyTranslated("bot.inhibited");
+                        inhibited = true;
+                    }
+                    break;
+            }
+
+            if (!inhibited) {
+                int rtn = super.execute_command(holder);
+                if (rtn == 0) {
+                    reply(new TranslateHelper(
+                            "unknown_command", 1
+                    ).translate(user.getLang()));
+                }
             }
         }
 
