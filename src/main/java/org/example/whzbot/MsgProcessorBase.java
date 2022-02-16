@@ -20,6 +20,7 @@ import org.example.whzbot.helper.RandomHelper;
 import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.helper.CardDeckHelper;
 import org.example.whzbot.storage.GlobalVariable;
+import org.example.whzbot.storage.Language;
 
 import java.util.UUID;
 
@@ -721,6 +722,39 @@ public abstract class MsgProcessorBase {
                         replyTranslated("lang.changed");
                     } else {
                         replyTranslated("lang.unknown_lang");
+                    }
+                }
+                break;
+            }
+            case nn:
+            case nnn:{
+                if (!holder.hasNext()) {
+                    user.getCharacter().setName(null);
+                    replyTranslated("name.removed", "");
+                } else if (holder.isNextWord()) {
+                    String arg = holder.getNextArg();
+                    String name = Language.getLanguage(user.getLang()).getRandomName(arg);
+                    if (!name.equals("lang_not_support")) {
+                        user.getCharacter().setName(name);
+                        replyTranslated("name.changed", name);
+                    } else {
+                        name = arg + " " + holder.getRest();
+                        if (name.length() > 20) {
+                            replyTranslated("name.too_long");
+                        }
+                        else {
+                            user.getCharacter().setName(name);
+                            replyTranslated("name.changed", name);
+                        }
+                    }
+                } else {
+                    String name = holder.getRest();
+                    if (name.length() > 20) {
+                        replyTranslated("name.too_long");
+                    }
+                    else {
+                        user.getCharacter().setName(name);
+                        replyTranslated("name.changed", name);
                     }
                 }
                 break;

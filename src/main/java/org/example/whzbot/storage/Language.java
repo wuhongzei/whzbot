@@ -1,5 +1,10 @@
 package org.example.whzbot.storage;
 
+import org.example.whzbot.helper.RandomHelper;
+import org.example.whzbot.storage.json.*;
+
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Language {
@@ -9,6 +14,7 @@ public class Language {
     public HashMap<String, String> global_variables = new HashMap<>();
     public HashMap<String, String> help_doc = new HashMap<>();
     public HashMap<String, String> card_translation = new HashMap<>();
+    public HashMap<String, String[]> names = new HashMap<>();
 
     private final static Language DUMMY = new DummyLanguage();
 
@@ -28,6 +34,7 @@ public class Language {
         ProfileSaveAndLoad.loadFlatJson(this.help_doc, dir_path + "/HelpDoc.whz");
         ProfileSaveAndLoad.loadMap(this.help_doc, dir_path + "/Tarot.whz");
         ProfileSaveAndLoad.loadMap(this.card_translation, dir_path + "/CardTrans.whz");
+        this.loadNames(dir_path + "/Names.whz");
     }
 
     public String getVariable(String var) {
@@ -48,6 +55,32 @@ public class Language {
             rtn = card;
         return rtn;
     }
+    public String getRandomName(String lang) {
+        String[] deck_set = this.getNameSetRecursive(lang);
+        if (deck_set == null)
+            return "lang_not_support";
+        String str_name = RandomHelper.drawFromArray(deck_set);
+
+        int index_front = str_name.indexOf('{');
+        int index_back;
+        while (index_front != -1) {
+            index_front = str_name.indexOf('{');
+            index_back = str_name.indexOf('}', index_front + 1);
+            if (index_back == -1)
+                break;
+
+            String direction = str_name.substring(index_front + 1, index_back);
+            deck_set = this.getNameSetRecursive(direction);
+            if (deck_set == null)
+                return "lang_not_support";
+            str_name = str_name.replace(
+                    str_name.substring(index_front, index_back + 1),
+                    RandomHelper.drawFromArray(deck_set));
+
+        }
+        return str_name;
+    }
+
     protected String getVariableRecursive(String var) {
         String rtn = this.global_variables.get(var);
         if (rtn == null)
@@ -71,6 +104,12 @@ public class Language {
             rtn = this.father.getCardRecursive(card);
         return rtn;
     }
+    protected String[] getNameSetRecursive(String lang_name) {
+        String[] rtn = this.names.get(lang_name);
+        if (rtn == null)
+            rtn = this.father.getNameSetRecursive(lang_name);
+        return rtn;
+    }
 
     public static Language getLanguage(String lang_name) {
         if (GlobalVariable.LANGUAGES.containsKey(lang_name))
@@ -90,6 +129,41 @@ public class Language {
         }
         protected String getCardRecursive(String card) {
             return null;
+        }
+        protected String[] getNameSetRecursive(String lang_name) {
+            return null;
+        }
+    }
+
+    private void loadNames(String path) {
+        JsonObjectNode json = new JsonObjectNode();
+        try {
+            JsonLoader loader = new JsonLoader(path);
+            json = (JsonObjectNode) loader.load();
+        } catch (FileNotFoundException ignored) {
+        }
+        for (JsonNode list_node : json) {
+            if (list_node instanceof JsonListNode) {
+                ArrayList<String> cards = new ArrayList<>();
+                for (JsonNode item_node : (JsonListNode) list_node) {
+                    if (item_node instanceof JsonStringNode)
+                        cards.add(item_node.getContent());
+                    else if (item_node instanceof JsonObjectNode) {
+                        JsonNode weight_node = item_node.get("weight");
+                        JsonNode card_node = item_node.get("card");
+                        if (weight_node instanceof JsonLongNode &&
+                                card_node instanceof JsonStringNode) {
+                            int weight = (int) Double.parseDouble(
+                                    weight_node.getContent());
+                            String card = card_node.getContent();
+                            for (int i = 0; i < weight; i++)
+                                cards.add(card);
+                        }
+                    }
+                }
+
+                this.names.put(list_node.getName(), cards.toArray(new String[0]));
+            }
         }
     }
 }

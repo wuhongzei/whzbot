@@ -106,6 +106,11 @@ public class Character {
         return this.uuid;
     }
 
+    public void setName(String new_name) {
+        this.name = new_name;
+        this.modified = true;
+    }
+
     public String getName() {
         if (this.nick_name != null)
             return this.nick_name;

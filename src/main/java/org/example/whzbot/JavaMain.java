@@ -29,7 +29,7 @@ public class JavaMain {
     public static long master_qq = 1195693771L;
     public static long bot_qq = 2247902937L;
     public static String password = "20000506wwwhz2";
-    public static final String version = "2.7.1.78";
+    public static final String version = "2.7.2.79";
     public static String working_dir = "F:\\work\\java\\wherai_bot\\working_dictionary";
     public static String resource_dir = "";
     public static String storing_dir = "";
