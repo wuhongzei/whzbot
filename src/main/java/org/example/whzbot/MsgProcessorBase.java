@@ -3,7 +3,6 @@ package org.example.whzbot;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.event.events.AbstractMessageEvent;
 import net.mamoe.mirai.contact.Contact;
-import net.mamoe.mirai.message.data.MessageChain;
 
 import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHelper;
@@ -26,7 +25,7 @@ import java.util.UUID;
 
 import static org.example.whzbot.JavaMain.storing_dir;
 
-/*
+/**
  * Message Processor Base
  * This class should handle received messages.
  * User permission, habits and prohibitions should be processed.
@@ -66,10 +65,6 @@ public abstract class MsgProcessorBase {
                 new String[]{user.getNickName(), val},
                 1
         ).translate(user.getLang()));
-    }
-
-    public void reply(MessageChain reply_chain) {
-        this.event.getSubject().sendMessage(reply_chain);
     }
 
     public void send(String str, Contact someone) {
@@ -128,7 +123,7 @@ public abstract class MsgProcessorBase {
                 int rp = (int) (100 * RandomHelper.jrrpRandom(this.event.getSender().getId()));
                 reply(new TranslateHelper(
                         "jrrp.reply",
-                        new String[]{this.event.getSenderName(), String.valueOf(rp)},
+                        new String[]{user.getNickName(), String.valueOf(rp)},
                         1).translate(lang_name)
                 );
                 break;
@@ -148,7 +143,10 @@ public abstract class MsgProcessorBase {
 
                 reply(new TranslateHelper(
                         "omkj.reply",
-                        new TranslateHelper[]{CardDeckHelper.draw(omkj_type)},
+                        new TranslateHelper[]{
+                                new TranslateHelper(user.getNickName()),
+                                CardDeckHelper.draw(omkj_type)
+                        },
                         1).translate(lang_name)
                 );
                 break;
@@ -190,7 +188,7 @@ public abstract class MsgProcessorBase {
                             tr = new TranslateHelper(
                                     "roll_det.reply",
                                     new TranslateHelper[]{
-                                            new TranslateHelper(this.event.getSenderName()),
+                                            new TranslateHelper(user.getNickName()),
                                             new TranslateHelper(skill_name),
                                             new TranslateHelper(result_type, 1)
                                     },
@@ -200,7 +198,7 @@ public abstract class MsgProcessorBase {
                             tr = new TranslateHelper(
                                     "roll_det.reply_reason",
                                     new TranslateHelper[]{
-                                            new TranslateHelper(this.event.getSenderName()),
+                                            new TranslateHelper(user.getNickName()),
                                             new TranslateHelper(skill_name),
                                             new TranslateHelper(result_type, 1),
                                             new TranslateHelper(reason)
@@ -438,7 +436,7 @@ public abstract class MsgProcessorBase {
                     reply(new TranslateHelper(
                             "draw.card",
                             new TranslateHelper[]{
-                                    new TranslateHelper(this.event.getSenderName()),
+                                    new TranslateHelper(user.getNickName()),
                                     CardDeckHelper.draw(deck_name)
                             },
                             1).translate(lang_name)
@@ -447,7 +445,7 @@ public abstract class MsgProcessorBase {
                     reply(new TranslateHelper(
                             "draw.card",
                             new TranslateHelper[]{
-                                    new TranslateHelper(this.event.getSenderName()),
+                                    new TranslateHelper(user.getNickName()),
                                     new TranslateHelper(
                                             "|",
                                             CardDeckHelper.draw(deck_name, draw_count),

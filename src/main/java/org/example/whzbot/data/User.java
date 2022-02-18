@@ -1,6 +1,7 @@
 package org.example.whzbot.data;
 
 import org.example.whzbot.storage.GlobalVariable;
+import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonNode;
 import org.example.whzbot.storage.json.JsonObjectNode;
 import org.example.whzbot.storage.json.JsonStringNode;
@@ -145,7 +146,15 @@ public class User implements IUser {
                     "character",
                     this.character.getUUID().toString())
             );
+        if (this.lang != null)
+            rtn.add(new JsonStringNode("lang", this.lang));
 
+        JsonObjectNode setting_node = new JsonObjectNode("setting");
+        Json.reconstruct(
+                this.setting, setting_node,
+                (String val) -> new JsonStringNode("", val)
+        );
+        rtn.add(setting_node);
         return rtn;
     }
 
@@ -154,6 +163,13 @@ public class User implements IUser {
         if (character_node instanceof JsonStringNode) {
             this.character = Pool.getCharacter(
                     UUID.fromString(character_node.getContent()));
+        }
+        this.lang = Json.readString(json, "lang", null);
+
+        JsonNode node = json.get("setting");
+        if (node instanceof JsonObjectNode) {
+            node.setName("");
+            node.flatten(this.setting, "");
         }
     }
 }

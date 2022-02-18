@@ -11,7 +11,7 @@ import java.nio.charset.Charset;
 
 public class JsonLoader {
 
-    private File file; // Stores either readable file or a directory
+    private final File file; // Stores either readable file or a directory
     private String str;
     private int index;
 
@@ -84,12 +84,18 @@ public class JsonLoader {
 
                         j = this.str.indexOf(':', this.index + 1);
                         if (j > 0) {
-                            System.err.printf("Unenclosed quote from %d, line %d\n",
-                                    this.index, StringHelper.count(this.str, '\n', 0, this.index)
+                            node_name = this.str.substring(this.index + 1, j);
+                            System.err.printf(
+                                    "Unenclosed quote from %d, line %d at file \"%s\"\n",
+                                    this.index,
+                                    StringHelper.count(this.str, '\n', 0, this.index),
+                                    this.file.getPath()
                             );
                         } else {
-                            System.err.printf("Missing content %d, line %d\n",
-                                    this.index, StringHelper.count(this.str, '\n', 0, this.index)
+                            System.err.printf("Missing content %d, line %d at file \"%s\"\n",
+                                    this.index,
+                                    StringHelper.count(this.str, '\n', 0, this.index),
+                                    this.file.getPath()
                             );
                             return new JsonNode(node_name);
                         }
@@ -151,8 +157,10 @@ public class JsonLoader {
             j = j != -1 && c != -1 ? Math.min(j, c) : Math.max(j, c);
 
             if (j == -1) {
-                System.err.printf("Unenclosed content %d, line %d\n",
-                        this.index, StringHelper.count(this.str, '\n', 0, this.index)
+                System.err.printf("Unenclosed content %d, line %d at file \"%s\"\n",
+                        this.index,
+                        StringHelper.count(this.str, '\n', 0, this.index),
+                        this.file.getPath()
                 );
                 j = this.str.length();
             }
@@ -169,14 +177,18 @@ public class JsonLoader {
     }
 
     private void warnMissingComma() {
-        System.err.printf("Missing comma before %d, line %d\n",
-                this.index, StringHelper.count(this.str, '\n', 0, this.index)
+        System.err.printf("Missing comma before %d, line %d at file \"%s\"\n",
+                this.index,
+                StringHelper.count(this.str, '\n', 0, this.index),
+                this.file.getPath()
         );
     }
 
     private void warnExtraComma() {
-        System.err.printf("extra comma at %d, line %d\n",
-                this.index, StringHelper.count(this.str, '\n', 0, this.index)
+        System.err.printf("extra comma at %d, line %d at file \"%s\"\n",
+                this.index,
+                StringHelper.count(this.str, '\n', 0, this.index),
+                this.file.getPath()
         );
     }
 }

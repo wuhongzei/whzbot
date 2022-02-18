@@ -35,7 +35,6 @@ public enum Command {
     set_coc(CommandType.GROUP, Permission.GROUP_ADMIN, "setcoc"),
     group(CommandType.GROUP, Permission.ANY_ADMIN, "group"),
     silent(CommandType.GROUP, Permission.GROUP_ADMIN, "silent"),
-    deck(CommandType.GROUP, Permission.GROUP_ADMIN, "deck"),
     link(CommandType.GROUP, Permission.GROUP_ADMIN, "link"),
     name(CommandType.GROUP, Permission.GROUP_MEMBER, "name"),
 
@@ -48,6 +47,7 @@ public enum Command {
     coc6(CommandType.DICE, Permission.ANYONE, "cochex"),
     coc(CommandType.DICE, Permission.ANYONE, "coc"),
     draw(CommandType.DICE, Permission.ANYONE, "draw"),
+    deck(CommandType.DICE, Permission.ANYONE, "deck"),
     init(CommandType.DICE, Permission.ANYONE, "init"),
     dnd(CommandType.DICE, Permission.ANYONE, "dnd"),
     nnn(CommandType.DICE, Permission.ANYONE, "nnn"),

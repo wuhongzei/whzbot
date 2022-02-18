@@ -26,11 +26,11 @@ import java.io.FileNotFoundException;
 import org.example.whzbot.storage.GlobalVariable;
 
 public class JavaMain {
-    public static long master_qq = 1195693771L;
-    public static long bot_qq = 2247902937L;
-    public static String password = "20000506wwwhz2";
-    public static final String version = "2.7.2.79";
-    public static String working_dir = "F:\\work\\java\\wherai_bot\\working_dictionary";
+    public static long master_qq = -1L;
+    public static long bot_qq = 0L;
+    public static String password = null;
+    public static final String version = "2.7.2.80";
+    public static String working_dir = "";
     public static String resource_dir = "";
     public static String storing_dir = "";
     public static String setting_path = "settings.whz";
@@ -43,7 +43,10 @@ public class JavaMain {
             System.out.println(args[1]);
             setting_path = args[1];
         }
-        loadSetting(setting_path);
+        if (!loadSetting(setting_path)) {
+            System.err.println("Setting Incomplete");
+            return;
+        }
 
         Bot bot = BotFactory.INSTANCE.newBot(
                 bot_qq,
@@ -144,28 +147,35 @@ public class JavaMain {
             master.sendMessage(msg);
     }
 
-    public static void loadSetting(String file_path) {
-        JsonObjectNode setting = null;
+    public static boolean loadSetting(String file_path) {
+        JsonObjectNode setting;
         try {
             JsonLoader loader = new JsonLoader(file_path);
             setting = (JsonObjectNode) loader.load();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
+            return false;
         }
 
         if (setting != null) {
             JsonNode node = setting.get("bot_qq");
             if (node instanceof JsonLongNode)
                 bot_qq = Long.parseLong(node.getContent());
+            else
+                return false;
             node = setting.get("bot_pass");
             if (node instanceof JsonStringNode)
                 password = node.getContent();
+            else
+                return false;
             node = setting.get("master_qq");
             if (node instanceof JsonLongNode)
                 master_qq = Long.parseLong(node.getContent());
             node = setting.get("working_dir");
             if (node instanceof JsonStringNode)
                 working_dir = node.getContent();
+            else
+                return false;
             node = setting.get("resource_dir");
             if (node instanceof JsonStringNode)
                 resource_dir = node.getContent();
@@ -176,7 +186,9 @@ public class JavaMain {
                 storing_dir = node.getContent();
             else
                 storing_dir = working_dir + "\\data";
-        }
+            return true;
+        } else
+            return false;
     }
 
     public static void loadAlias() {

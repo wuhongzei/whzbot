@@ -10,7 +10,6 @@ import net.mamoe.mirai.message.data.SingleMessage;
 
 import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHolder;
-import org.example.whzbot.command.CommandType;
 import org.example.whzbot.command.Permission;
 import org.example.whzbot.data.Group;
 import org.example.whzbot.data.Pool;

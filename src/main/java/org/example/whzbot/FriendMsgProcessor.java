@@ -11,7 +11,6 @@ import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.command.CommandType;
 import org.example.whzbot.command.Permission;
-import org.example.whzbot.helper.StringHelper;
 import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonNode;
