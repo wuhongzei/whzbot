@@ -96,18 +96,11 @@ public class GroupMsgProcessor extends MsgProcessorBase {
 
         if (msg instanceof PlainText) {
             String text = ((PlainText) msg).getContent();
-            int temp;
             if (is_at) {
-                temp = text.indexOf(String.format("@%s", this.bot.getNick()));
-                if (temp == 0)
-                    debug("find @ at 0");
-                else
-                    debug("find @ not 0");
                 text = text.replaceFirst(String.format("@%s", this.bot.getNick()), "");
                 text = text.substring(StringHelper.skipSpace(text, 0));
-                //this.debugString(text);
             }
-            this.debug(text);
+            //this.debug(text);
 
             if (!CommandHolder.isCommand(text))
                 return;

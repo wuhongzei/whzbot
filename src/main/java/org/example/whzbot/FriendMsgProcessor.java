@@ -73,15 +73,15 @@ public class FriendMsgProcessor extends MsgProcessorBase {
         }
 
         if (msg instanceof PlainText) {
-            this.debug(msg.toString());
-            this.debugString(msg.toString());
+            //this.debug(msg.toString());
+            //this.debugString(msg.toString());
             String text = ((PlainText) msg).getContent();
-            this.debugString(msg.toString());
+            //this.debugString(msg.toString());
 
             if (!CommandHolder.isCommand(text))
                 return;
             CommandHolder holder = new CommandHolder(text, 1);
-            this.debug(holder.getName());
+            //this.debug(holder.getName());
 
             boolean inhibited = false;
             if (user.getSetting("bot.on", 1) == 0 &&

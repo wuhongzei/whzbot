@@ -727,7 +727,7 @@ public abstract class MsgProcessorBase {
             case nn:
             case nnn:{
                 if (!holder.hasNext()) {
-                    user.getCharacter().setName(null);
+                    user.getCharacter().setName("");
                     replyTranslated("name.removed", "");
                 } else if (holder.isNextWord()) {
                     String arg = holder.getNextArg();

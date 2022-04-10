@@ -29,7 +29,7 @@ public class JavaMain {
     public static long master_qq = -1L;
     public static long bot_qq = 0L;
     public static String password = null;
-    public static final String version = "2.7.2.80";
+    public static final String version = "2.7.2.81";
     public static String working_dir = "";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -102,7 +102,7 @@ public class JavaMain {
         bot.getEventChannel().subscribeAlways(
                 BotLeaveEvent.Kick.class,
                 (event) -> notifyMaster(
-                        event.getBot(),
+                        ((BotLeaveEvent)event).getBot(),
                         String.format(
                                 "bot kicked by %d from %d",
                                 event.getOperator().getId(),
