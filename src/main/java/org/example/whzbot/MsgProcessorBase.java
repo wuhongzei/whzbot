@@ -3,10 +3,18 @@ package org.example.whzbot;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.event.events.AbstractMessageEvent;
 import net.mamoe.mirai.contact.Contact;
+import net.mamoe.mirai.message.data.At;
+import net.mamoe.mirai.message.data.FlashImage;
+import net.mamoe.mirai.message.data.Image;
+import net.mamoe.mirai.message.data.LightApp;
+import net.mamoe.mirai.message.data.PlainText;
+import net.mamoe.mirai.message.data.SingleMessage;
+import net.mamoe.mirai.utils.ExternalResource;
 
 import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHelper;
 import org.example.whzbot.command.CommandHolder;
+import org.example.whzbot.command.CommandType;
 import org.example.whzbot.command.Permission;
 import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.Pool;
@@ -20,8 +28,14 @@ import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.helper.CardDeckHelper;
 import org.example.whzbot.storage.GlobalVariable;
 import org.example.whzbot.storage.Language;
+import org.example.whzbot.storage.json.Json;
+import org.example.whzbot.storage.json.JsonNode;
+import org.example.whzbot.storage.json.JsonStringNode;
 
+import java.io.File;
 import java.util.UUID;
+
+import javax.swing.text.AbstractDocument;
 
 import static org.example.whzbot.JavaMain.storing_dir;
 
@@ -37,6 +51,7 @@ public abstract class MsgProcessorBase {
     protected Bot bot;
     protected IUser user;
     protected Permission permission = Permission.ANYONE;
+    protected SingleMessage msg;
 
     protected MsgProcessorBase(AbstractMessageEvent event) {
         this.event = event;
@@ -75,8 +90,8 @@ public abstract class MsgProcessorBase {
         throw new UnsupportedOperationException();
     }
 
-    public void replyImage(String image_url) throws Exception {
-        throw new UnsupportedOperationException();
+    public void replyImage(String image_id) {
+        this.event.getSubject().sendMessage(Image.fromId(image_id));
     }
 
     public void debug(String str) {
@@ -91,11 +106,111 @@ public abstract class MsgProcessorBase {
         this.debug(b.toString());
     }
 
-    /*
+    /**
      * Use to process a message.
-     * returns a int to trace stats.
+     * returns int to trace stats.
+     *   if return < 0, input must be incorrect.
+     *   if return = 0, this method processed nothing.
+     *   if return = 1, success.
+     *   return = 2, bot is @ but not success.
      */
-    abstract void process();
+    protected int process() {
+        MessageQueue msgq = new MessageQueue(this.event.getMessage());
+        this.event.getBot().getLogger().debug(msgq.toString());
+        if (msgq.isEmpty())
+            return -1;
+
+        this.msg = msgq.poll();
+
+        if (this.isBotOff())
+            return -2;
+        if (msg instanceof At) {
+            int at_rtn = this.processAt();
+            if (at_rtn != 0)
+                return at_rtn;
+            else if (msgq.isEmpty()) {
+                replyTranslated("bot.empty_at");
+                return 2;
+            } else
+                msg = msgq.poll();
+        }
+
+        if (msg instanceof LightApp) {
+            this.processApp();
+            return 1;
+        } else if (msg instanceof Image) {
+            this.processImage();
+            return 1;
+        } else if (msg instanceof FlashImage) {
+            msg = ((FlashImage) msg).getImage();
+            this.processImage();
+            return 1;
+        } else if (msg instanceof PlainText) {
+            return this.processText();
+        }
+        return 0;
+    }
+
+    protected int processAt() {
+        return 0;
+    }
+
+    protected void processApp() {
+        if (this.user.getSetting("web.on", 0) != 0 &&
+                this.user.getSetting("web.anti_app", 0) != 0
+        ) {
+            JsonNode node = Json.fromString(((LightApp) msg).getContent());
+            if (node != null) {
+                JsonNode str_node = node.get("meta.detail_1.host.qqdocurl");
+                if (!(str_node instanceof JsonStringNode)) {
+                    str_node = node.get("meta.detail_1.qqdocurl");
+                    if (!(str_node instanceof JsonStringNode))
+                        this.debug(((LightApp) msg).getContent());
+                    else
+                        reply(str_node.getContent().replaceAll("\\\\/", "/"));
+                } else
+                    reply(str_node.getContent().replaceAll("\\\\/", "/"));
+            }
+            this.debug(((LightApp) msg).getContent());
+        }
+    }
+
+    protected void processImage() {
+        if (this.user.getSetting("web.on", 0) != 0) {
+            String url = Image.queryUrl((Image) msg);
+            if (this.user.getSetting("web.image_url", 1) != 0)
+                reply(url);
+            else
+                user.setStorage("last_reply", url);
+        }
+    }
+
+    protected int processText() {
+        String text = ((PlainText) msg).getContent();
+
+        if (!CommandHolder.isCommand(text))
+            return 1;
+        CommandHolder holder = new CommandHolder(text, 1);
+
+        boolean inhibited = false;
+        if (this.isBotOff() && holder.getCmd() != Command.set) {
+            inhibited = true;
+        }
+        if (!inhibited && this.isCmdOff(holder.getCmd().type)) {
+            inhibited = true;
+            replyTranslated("bot.inhibited");
+        }
+
+        if (!inhibited) {
+            int rtn = this.execute_command(holder);
+            if (rtn == 0) {
+                reply(new TranslateHelper(
+                        "unknown_command", 1
+                ).translate(user.getLang()));
+            }
+        }
+        return 0;
+    }
 
     protected int execute_command(CommandHolder holder) {
         String lang_name = user.getLang();
@@ -821,5 +936,55 @@ public abstract class MsgProcessorBase {
                 return 0;
         }
         return holder.getCmd().type.getId();
+    }
+
+    protected boolean isBotOff() {
+        return user.getSetting("bot.on", 1) == 0;
+    }
+
+    protected boolean isCmdOff(CommandType t) {
+        switch (t) {
+        case DICE:
+            if (user.getSetting("dice.on", 0) == 0) {
+                return true;
+            }
+            break;
+        case TAROT:
+            if (user.getSetting("tarot.on", 0) == 0) {
+                return true;
+            }
+            break;
+        case SIMCHAT:
+            if (user.getSetting("simple_chat.on", 0) == 0) {
+                return true;
+            }
+            break;
+        case MCSERVER:
+            if (user.getSetting("mc_server.on", 0) == 0) {
+                return true;
+            }
+            break;
+        case MATH:
+            if (user.getSetting("math.on", 0) == 0) {
+                return true;
+            }
+            break;
+        case GROUP:
+            if (user.getSetting("group.on", 0) == 0) {
+                return true;
+            }
+            break;
+        case WEB:
+            if (user.getSetting("web.on", 0) == 0) {
+                return true;
+            }
+            break;
+        case GENERAL:
+            if (user.getSetting("general.on", 0) == 0) {
+                return true;
+            }
+            break;
+    }
+        return false;
     }
 }

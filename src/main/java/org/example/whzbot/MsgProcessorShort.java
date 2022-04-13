@@ -1,21 +1,34 @@
 package org.example.whzbot;
 
 import net.mamoe.mirai.event.events.AbstractMessageEvent;
+import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.message.data.MessageChainBuilder;
 
 public class MsgProcessorShort extends MsgProcessorBase{
-    protected MessageQueue queue;
-
-    public MsgProcessorShort(AbstractMessageEvent event, MessageQueue queue) {
-        super(event);
-        this.queue = queue;
-    }
+    MessageChainBuilder chain_builder;
 
     protected MsgProcessorShort(AbstractMessageEvent event) {
         super(event);
     }
 
-    @Override
-    void process() {
+    public void reply(String str) {
+        this.chain_builder.add(str);
+        this.debug(str);
+        this.user.setStorage("last_reply", str);
+    }
 
+    @Override
+    public int process() {
+        MessageQueue queue = new MessageQueue(this.event.getMessage());
+        this.msg = queue.poll();
+        return 0;
+    }
+
+    public String getReplyString() {
+        return this.chain_builder.build().toString();
+    }
+
+    public MessageChain getReply() {
+        return this.chain_builder.build();
     }
 }
