@@ -43,7 +43,7 @@ import static org.example.whzbot.JavaMain.storing_dir;
  * Message Processor Base
  * This class should handle received messages.
  * User permission, habits and prohibitions should be processed.
- * */
+ */
 public abstract class MsgProcessorBase {
     protected AbstractMessageEvent event;
     public int event_type;
@@ -109,16 +109,18 @@ public abstract class MsgProcessorBase {
     /**
      * Use to process a message.
      * returns int to trace stats.
-     *   if return < 0, input must be incorrect.
-     *   if return = 0, this method processed nothing.
-     *   if return = 1, success.
-     *   return = 2, bot is @ but not success.
+     * if return < 0, input must be incorrect.
+     * if return = 0, this method processed nothing.
+     * if return = 1, success.
+     * return = 2, bot is @ but not success.
      */
     protected int process() {
         MessageQueue msgq = new MessageQueue(this.event.getMessage());
         this.event.getBot().getLogger().debug(msgq.toString());
         if (msgq.isEmpty())
             return -1;
+
+        debug(msgq.toString());
 
         this.msg = msgq.poll();
 
@@ -197,8 +199,9 @@ public abstract class MsgProcessorBase {
             inhibited = true;
         }
         if (!inhibited && this.isCmdOff(holder.getCmd().type)) {
-            inhibited = true;
+            //inhibited = true;
             replyTranslated("bot.inhibited");
+            return 1;
         }
 
         if (!inhibited) {
@@ -807,7 +810,7 @@ public abstract class MsgProcessorBase {
                     path = "bot.on";
 
                 if (!GlobalVariable.DEFAULT_USER_SETTING.containsKey(path)
-                    && !GlobalVariable.DEFAULT_GROUP_SETTING.containsKey(path))
+                        && !GlobalVariable.DEFAULT_GROUP_SETTING.containsKey(path))
                     replyTranslated("set.invalid_key");
                 else {
                     if (!holder.hasNext()) {
@@ -840,7 +843,7 @@ public abstract class MsgProcessorBase {
                 break;
             }
             case nn:
-            case nnn:{
+            case nnn: {
                 if (!holder.hasNext()) {
                     user.getCharacter().setName("");
                     replyTranslated("name.removed", "");
@@ -854,8 +857,7 @@ public abstract class MsgProcessorBase {
                         name = arg + " " + holder.getRest();
                         if (name.length() > 20) {
                             replyTranslated("name.too_long");
-                        }
-                        else {
+                        } else {
                             user.getCharacter().setName(name);
                             replyTranslated("name.changed", name);
                         }
@@ -864,8 +866,7 @@ public abstract class MsgProcessorBase {
                     String name = holder.getRest();
                     if (name.length() > 20) {
                         replyTranslated("name.too_long");
-                    }
-                    else {
+                    } else {
                         user.getCharacter().setName(name);
                         replyTranslated("name.changed", name);
                     }
@@ -903,7 +904,8 @@ public abstract class MsgProcessorBase {
                         JavaMain.loadCardDeck();
                         JavaMain.loadLanguage();
                         JavaMain.loadAlias();
-                        reply("Reloading Everything");
+                        JavaMain.loadDefaultSetting();
+                        reply("Reloaded Everything");
                         break;
                     default:
                         reply("Reloading! Nope, it's a plank.");
@@ -918,6 +920,7 @@ public abstract class MsgProcessorBase {
                 }
                 JavaMain.saveProfile();
                 reply("saved.");
+                break;
             case exit:
                 if (event.getSender().getId() != JavaMain.master_qq) {
                     reply("Who are you?");
@@ -944,47 +947,47 @@ public abstract class MsgProcessorBase {
 
     protected boolean isCmdOff(CommandType t) {
         switch (t) {
-        case DICE:
-            if (user.getSetting("dice.on", 0) == 0) {
-                return true;
-            }
-            break;
-        case TAROT:
-            if (user.getSetting("tarot.on", 0) == 0) {
-                return true;
-            }
-            break;
-        case SIMCHAT:
-            if (user.getSetting("simple_chat.on", 0) == 0) {
-                return true;
-            }
-            break;
-        case MCSERVER:
-            if (user.getSetting("mc_server.on", 0) == 0) {
-                return true;
-            }
-            break;
-        case MATH:
-            if (user.getSetting("math.on", 0) == 0) {
-                return true;
-            }
-            break;
-        case GROUP:
-            if (user.getSetting("group.on", 0) == 0) {
-                return true;
-            }
-            break;
-        case WEB:
-            if (user.getSetting("web.on", 0) == 0) {
-                return true;
-            }
-            break;
-        case GENERAL:
-            if (user.getSetting("general.on", 0) == 0) {
-                return true;
-            }
-            break;
-    }
+            case DICE:
+                if (user.getSetting("dice.on", 1) == 0) {
+                    return true;
+                }
+                break;
+            case TAROT:
+                if (user.getSetting("tarot.on", 0) == 0) {
+                    return true;
+                }
+                break;
+            case SIMCHAT:
+                if (user.getSetting("simple_chat.on", 0) == 0) {
+                    return true;
+                }
+                break;
+            case MCSERVER:
+                if (user.getSetting("mc_server.on", 0) == 0) {
+                    return true;
+                }
+                break;
+            case MATH:
+                if (user.getSetting("math.on", 0) == 0) {
+                    return true;
+                }
+                break;
+            case GROUP:
+                if (user.getSetting("group.on", 0) == 0) {
+                    return true;
+                }
+                break;
+            case WEB:
+                if (user.getSetting("web.on", 0) == 0) {
+                    return true;
+                }
+                break;
+            case GENERAL:
+                if (user.getSetting("general.on", 0) == 0) {
+                    return true;
+                }
+                break;
+        }
         return false;
     }
 }
