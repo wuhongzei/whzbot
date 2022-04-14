@@ -238,7 +238,7 @@ public abstract class MsgProcessorBase {
                     reply("Aaaaaaaaaa...");
                 break;
             case jrrp:
-                int rp = (int) (100 * RandomHelper.jrrpRandom(this.event.getSender().getId()));
+                int rp = (int) (100 * RandomHelper.jrrpRandom(this.user.getId()));
                 reply(new TranslateHelper(
                         "jrrp.reply",
                         new String[]{user.getNickName(), String.valueOf(rp)},
@@ -246,7 +246,7 @@ public abstract class MsgProcessorBase {
                 );
                 break;
             case omkj:
-                int omkj_rp = (int) (100 * RandomHelper.jrrpRandom(this.event.getSender().getId()));
+                int omkj_rp = (int) (100 * RandomHelper.jrrpRandom(this.user.getId()));
                 String omkj_type;
                 if (omkj_rp > 85)
                     omkj_type = "omkj_type0";
@@ -577,7 +577,7 @@ public abstract class MsgProcessorBase {
             }
             case help:
                 reply(new TranslateHelper(
-                        holder.hasNext() ? holder.getNextWord() : "help",
+                        holder.hasNext() ? holder.getRest() : "help",
                         2
                 ).translate(lang_name));
                 break;
@@ -854,7 +854,8 @@ public abstract class MsgProcessorBase {
                         user.getCharacter().setName(name);
                         replyTranslated("name.changed", name);
                     } else {
-                        name = arg + " " + holder.getRest();
+                        holder.revert(arg.length());
+                        name = holder.getRest();
                         if (name.length() > 20) {
                             replyTranslated("name.too_long");
                         } else {

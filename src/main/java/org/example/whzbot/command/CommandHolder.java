@@ -193,6 +193,18 @@ public class CommandHolder {
         }
     }
 
+    /**
+     * Move back cursor for length + space indices.
+     * @param length distance to move back cursor (exclude space)
+     */
+    public void revert(int length) {
+        this.cursor--;
+        while(StringHelper.isSpace(this.cmd_arg.charAt(cursor)))
+            this.cursor--;
+        this.cursor -= length - 1;
+    }
+
+
     public static boolean isCommand(String text) {
         return text.length() >= 2 &&
                 (text.charAt(0) == '.' || text.charAt(0) == '\u3002') &&

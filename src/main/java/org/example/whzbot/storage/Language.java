@@ -46,7 +46,7 @@ public class Language {
     public String getHelpDoc(String var) {
         String rtn = this.getHelpRecursive(var);
         if (rtn == null)
-            rtn = this.getVariable("helpNotFound");
+            rtn = this.getVariable("help.not_found");
         return rtn;
     }
     public String getCardTranslate(String card) {

@@ -21,7 +21,7 @@ public enum Command {
     un_ban_group(CommandType.ADMIN, Permission.BOT_ADMIN, "unbangroup"),
     white_list(CommandType.ADMIN, Permission.BOT_ADMIN, "white"),
     reload(CommandType.ADMIN, Permission.BOT_ADMIN, "reload"),
-    version(CommandType.ADMIN, Permission.BOT_ADMIN, "version"),
+    version(CommandType.ADMIN, Permission.ANYONE, "version"),
 
     me_on(CommandType.GROUP, Permission.ANY_ADMIN, "meon"),
     me_off(CommandType.GROUP, Permission.ANY_ADMIN, "meoff"),
