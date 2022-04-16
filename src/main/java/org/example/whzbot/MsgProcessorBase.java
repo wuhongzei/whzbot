@@ -585,12 +585,14 @@ public abstract class MsgProcessorBase {
                 break;
             }
             case help:
-                reply(new TranslateHelper(
-                        holder.hasNext() ? holder.getRest() : "help",
-                        2
-                ).translate(lang_name));
+                reply(MsgProcessorShort.wrapper(
+                        new MsgProcessorShort(this.user),
+                        new TranslateHelper(
+                                holder.hasNext() ? holder.getRest() : "help",
+                                2
+                        ).translate(lang_name)
+                ));
                 break;
-
             case deck: {
                 if (holder.hasNext()) {
                     String deck_name = holder.getNextWord();

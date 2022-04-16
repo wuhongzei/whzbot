@@ -5,7 +5,7 @@ f=feature,b=bug,u=update,m=modify
 3- u update document #help_doc is done
 3.1 f automatic detect and load json/xml/simple-equal format
 3.3- move document to json for more readability
-4 f more executable text = 3.2 *may require 11
+4- f more executable text = 3.2 *may require 11
 5- b '\' at end line causes error
 5.1- b '\(1)' replaced with '(1)'
 6 u multi-page for long text
@@ -25,3 +25,4 @@ f=feature,b=bug,u=update,m=modify
 11.4 translation on sub-command
 12 m decouple language and json/file
 13 m remake naming (now messy)
+14 b fix setu

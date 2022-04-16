@@ -35,7 +35,6 @@ public class MsgProcessorShort extends MsgProcessorBase{
 
     public void reply(String str) {
         this.reply = str;
-        this.debug(str);
         this.user.setStorage("last_reply", str);
     }
 
