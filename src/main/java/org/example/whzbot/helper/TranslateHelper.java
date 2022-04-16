@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.storage.Language;
 
 public class TranslateHelper {
@@ -73,11 +74,21 @@ public class TranslateHelper {
                     j = translated.indexOf('}', i);
                     if (j != -1) {
                         String sub_str = translated.substring(i + 1, j);
-                        translated = translated.replaceAll(
-                                String.format("\\{%s\\}", sub_str),
-                                lang.getHelpDoc(sub_str)
-                        );
-                        i = translated.indexOf('{', j);
+                        if (sub_str.isBlank()) {
+                            translated = translated.replaceAll(
+                                    String.format("\\{%s\\}", sub_str),
+                                    ""
+                            );
+                            i = translated.indexOf('{', j);
+                        } else if (CommandHolder.isCommand(sub_str)) {
+                            i = translated.indexOf('{', j);
+                        } else {
+                            translated = translated.replaceAll(
+                                    String.format("\\{%s\\}", sub_str),
+                                    lang.getHelpDoc(sub_str)
+                            );
+                            i = translated.indexOf('{', j);
+                        }
                     }
                     else {
                         i = -1;

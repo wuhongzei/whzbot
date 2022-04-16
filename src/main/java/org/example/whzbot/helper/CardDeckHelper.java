@@ -2,6 +2,7 @@ package org.example.whzbot.helper;
 
 import java.util.ArrayList;
 
+import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.gacha.GachaItem;
 import org.example.whzbot.data.gacha.GachaPool;
@@ -58,11 +59,16 @@ public class CardDeckHelper {
             if (index_back == -1)
                 break;
             String replace_card = card.substring(index_front + 1, index_back);
-            new_card.append(String.format("{%d}", replacements.size()));
-            replacements.add(draw(replace_card));
-
             index_back++;
-            index_front = card.indexOf('{', index_back + 1);
+
+            if (!CommandHolder.isCommand(replace_card)) {
+                new_card.append(String.format("{%d}", replacements.size()));
+                replacements.add(draw(replace_card));
+            } else {
+                new_card.append(card, index_front, index_back);
+            }
+
+            index_front = card.indexOf('{', index_back);
         }
         if (index_front == -1)
             new_card.append(card.substring(index_back));

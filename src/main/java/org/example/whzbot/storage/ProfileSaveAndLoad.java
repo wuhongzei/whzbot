@@ -115,6 +115,9 @@ public class ProfileSaveAndLoad {
     public static void loadFlatJson(HashMap<String, String> map, String path) {
         JsonNode root = loadJson(path);
         root.flatten(map, "");
+        for (String key : map.keySet()) {
+            map.put(key, StringHelper.enSenString(map.get(key)));
+        }
     }
 
     public static void assertDir(String path, String usage) {

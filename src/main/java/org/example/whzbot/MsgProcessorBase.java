@@ -9,7 +9,6 @@ import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.LightApp;
 import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.message.data.SingleMessage;
-import net.mamoe.mirai.utils.ExternalResource;
 
 import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHelper;
@@ -32,10 +31,7 @@ import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonNode;
 import org.example.whzbot.storage.json.JsonStringNode;
 
-import java.io.File;
 import java.util.UUID;
-
-import javax.swing.text.AbstractDocument;
 
 import static org.example.whzbot.JavaMain.storing_dir;
 
@@ -47,11 +43,18 @@ import static org.example.whzbot.JavaMain.storing_dir;
 public abstract class MsgProcessorBase {
     protected AbstractMessageEvent event;
     public int event_type;
-    public int msg_type;
+    //public int msg_type;
     protected Bot bot;
     protected IUser user;
     protected Permission permission = Permission.ANYONE;
     protected SingleMessage msg;
+
+    protected MsgProcessorBase() {
+        this.event = null;
+        this.bot = null;
+        this.user = null;
+        this.event_type = -1;
+    }
 
     protected MsgProcessorBase(AbstractMessageEvent event) {
         this.event = event;
@@ -86,7 +89,7 @@ public abstract class MsgProcessorBase {
         someone.sendMessage(str);
     }
 
-    public void replyQuote(String str) throws Exception {
+    public void replyQuote(String str) {
         throw new UnsupportedOperationException();
     }
 
@@ -96,14 +99,6 @@ public abstract class MsgProcessorBase {
 
     public void debug(String str) {
         this.bot.getLogger().debug(str);
-    }
-
-    public void debugString(String str) {
-        StringBuilder b = new StringBuilder();
-        for (int i = 0; i < str.length(); i++) {
-            b.append((byte) str.charAt(i));
-        }
-        this.debug(b.toString());
     }
 
     /**
@@ -236,6 +231,20 @@ public abstract class MsgProcessorBase {
                     reply(holder.getRest());
                 else
                     reply("Aaaaaaaaaa...");
+                break;
+            case repeat:
+                if (holder.hasNext())
+                    reply(holder.getRest());
+                else
+                    reply(this.user.getStorage("last_reply"));
+                break;
+            case exec:
+                if (holder.hasNext()) {
+                    reply(MsgProcessorShort.wrapper(
+                            new MsgProcessorShort(this.user),
+                            holder.getRest()
+                    ));
+                }
                 break;
             case jrrp:
                 int rp = (int) (100 * RandomHelper.jrrpRandom(this.user.getId()));
@@ -550,28 +559,28 @@ public abstract class MsgProcessorBase {
                             "draw.positive", 1
                     ).translate(lang_name));
                     break;
-                } else if (draw_count == 1) {
-                    reply(new TranslateHelper(
-                            "draw.card",
-                            new TranslateHelper[]{
-                                    new TranslateHelper(user.getNickName()),
-                                    CardDeckHelper.draw(deck_name)
-                            },
-                            1).translate(lang_name)
-                    );
                 } else {
-                    reply(new TranslateHelper(
+                    TranslateHelper card_val;
+                    if (draw_count == 1) {
+                        card_val = CardDeckHelper.draw(deck_name);
+                    } else {
+                        card_val = new TranslateHelper(
+                                "|",
+                                CardDeckHelper.draw(deck_name, draw_count),
+                                4
+                        );
+                    }
+                    String cards_result = new TranslateHelper(
                             "draw.card",
                             new TranslateHelper[]{
                                     new TranslateHelper(user.getNickName()),
-                                    new TranslateHelper(
-                                            "|",
-                                            CardDeckHelper.draw(deck_name, draw_count),
-                                            4
-                                    )
-                            },
+                                    card_val},
                             1
-                    ).translate(lang_name));
+                    ).translate(user.getLang());
+                    reply(MsgProcessorShort.wrapper(
+                            new MsgProcessorShort(this.user),
+                            cards_result
+                    ));
                 }
                 break;
             }

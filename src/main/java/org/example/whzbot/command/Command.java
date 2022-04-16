@@ -75,6 +75,7 @@ public enum Command {
     gacha(CommandType.TAROT, Permission.ANYONE, "gacha"),
 
     echo(CommandType.SIMCHAT, Permission.ANYONE, "echo"),
+    repeat(CommandType.SIMCHAT, Permission.ANYONE, "repeat"),
     chat(CommandType.SIMCHAT, Permission.ANYONE, "chat"),
 
     survival(CommandType.MCSERVER, Permission.ANY_ADMIN, "sur"),
