@@ -48,6 +48,36 @@ public class StringHelper {
         return index;
     }
 
+    /**
+     * Find the index of closing bracket,
+     * should support '' out, multiple layer{{}}, and escape char.
+     * @param str   input string.
+     * @param index index of opening bracket.
+     * @return index of the corresponding close bracket.
+     */
+    public static int encloseBracket(String str, int index) {
+        char op = str.charAt(index);
+        char cl = (char) (op + (op + 44) / 84 + op / 64);
+        int layer = 1;
+        boolean escape = false;
+        while (layer > 0) {
+            index++;
+            if (index >= str.length())
+                break;
+            char c = str.charAt(index);
+            if (c == cl && !escape) {
+                layer--;
+            } else if (c == op && !escape) {
+                layer++;
+            } else if (c == '\\') {
+                escape = !escape;
+            } else if ((c == '\'' || c == '"') && !escape) {
+                index = encloseBracket(str, index);
+            }
+        }
+        return index;
+    }
+
     // Return the index of next none white space char in given string.
     public static int skipWhite(String str, int index) {
         while (index < str.length() && isWhite(str.charAt(index)))

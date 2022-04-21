@@ -34,10 +34,6 @@ public class CommandHolder {
         this.cmd = Command.fromString(this.cmd_name);
     }
 
-    public CommandHolder(String text) {
-        this(text, 0);
-    }
-
     /**
      * Used when possible miss poll happens.
      * This method should be used when next_arg is empty.
@@ -57,10 +53,25 @@ public class CommandHolder {
         return this.cmd;
     }
 
+    /**
+     * Get rest of the argument.
+     *
+     * @return A string of arguments.
+     * If next_arg exists, concatenate it in front of rest.
+     * If rest has quote, it only reads until quote closure.
+     */
     public String getRest() {
+        String rtn;
+        if (this.cmd_arg.charAt(this.cursor) == '"') {
+            int i = StringHelper.encloseBracket(this.cmd_arg, this.cursor);
+            rtn = this.cmd_arg.substring(this.cursor + 1, i);
+            this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+        } else {
+            rtn = this.cmd_arg.substring(this.cursor);
+            this.cursor = this.cmd_arg.length();
+        }
         return this.next_arg == null ?
-                this.cmd_arg.substring(this.cursor) :
-                this.next_arg + " " + this.cmd_arg.substring(this.cursor);
+                rtn : this.next_arg + " " + rtn;
     }
 
     /**
@@ -86,18 +97,27 @@ public class CommandHolder {
     /**
      * Return the next space-split string in arg.
      * If next_arg is not null, return next_arg.
+     * If quote is at front, it ends at quote closure and
+     * return would not include quote.
      * Updates self so that only read once.
      *
      * @return a string of cmd argument.
      */
     public String getNextArg() {
         if (this.next_arg == null) {
-            int i = this.cmd_arg.indexOf(' ', this.cursor);
-            if (i < 0)
-                i = this.cmd_arg.length();
-            String rtn = this.cmd_arg.substring(this.cursor, i);
-            this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
-            return rtn;
+            if (this.cmd_arg.charAt(this.cursor) == '"') {
+                int i = StringHelper.encloseBracket(this.cmd_arg, this.cursor);
+                String rtn = this.cmd_arg.substring(this.cursor + 1, i);
+                this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+                return rtn;
+            } else {
+                int i = this.cmd_arg.indexOf(' ', this.cursor);
+                if (i < 0)
+                    i = this.cmd_arg.length();
+                String rtn = this.cmd_arg.substring(this.cursor, i);
+                this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+                return rtn;
+            }
         } else {
             String rtn = this.next_arg;
             this.next_arg = null;
@@ -155,6 +175,10 @@ public class CommandHolder {
         return rtn;
     }
 
+    public int getCursor() {
+        return this.cursor;
+    }
+
     public boolean hasNext() {
         return this.cursor != this.cmd_arg.length() || this.next_arg != null;
     }
@@ -195,11 +219,12 @@ public class CommandHolder {
 
     /**
      * Move back cursor for length + space indices.
+     *
      * @param length distance to move back cursor (exclude space)
      */
     public void revert(int length) {
         this.cursor--;
-        while(StringHelper.isSpace(this.cmd_arg.charAt(cursor)))
+        while (StringHelper.isSpace(this.cmd_arg.charAt(cursor)))
             this.cursor--;
         this.cursor -= length - 1;
     }

@@ -15,14 +15,17 @@ import org.example.whzbot.helper.DiceHelper;
 import org.example.whzbot.helper.HttpHelper;
 import org.example.whzbot.helper.ProbabilityHelper;
 import org.example.whzbot.helper.RandomHelper;
+import org.example.whzbot.helper.StringHelper;
 import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.storage.GlobalVariable;
 import org.example.whzbot.storage.Language;
 
 import java.util.UUID;
 
-public class MsgProcessorShort extends MsgProcessorBase{
+public class MsgProcessorShort extends MsgProcessorBase {
     String reply;
+    int stack_level = 0; //use to mark up level of recursion, prevent stack overflow.
+    int exec_loc = -1;
 
     public MsgProcessorShort(AbstractMessageEvent event) {
         super(event);
@@ -44,6 +47,18 @@ public class MsgProcessorShort extends MsgProcessorBase{
 
     public String getReply() {
         return this.reply;
+    }
+
+    public void addLevel() {
+        this.stack_level++;
+    }
+
+    public void redLevel() {
+        this.stack_level--;
+    }
+
+    public boolean stackCheck() {
+        return this.exec_loc < 20;
     }
 
 
@@ -75,8 +90,10 @@ public class MsgProcessorShort extends MsgProcessorBase{
             int rtn = this.execute_command(holder);
             if (rtn < 1) {
                 return 3;
-            } else
+            } else {
+                this.exec_loc = holder.getCursor();
                 return 1;
+            }
         }
         return 3;
     }
@@ -98,11 +115,13 @@ public class MsgProcessorShort extends MsgProcessorBase{
                 reply(this.user.getStorage("last_reply"));
                 break;
             case exec:
-                if (holder.hasNext()) {
+                if (holder.hasNext() && this.stack_level < 16) {
+                    this.stack_level++;
                     reply(MsgProcessorShort.wrapper(
-                            new MsgProcessorShort(this.user),
+                            this,
                             holder.getRest()
                     ));
+                    this.stack_level--;
                 }
                 break;
             case jrrp:
@@ -236,7 +255,7 @@ public class MsgProcessorShort extends MsgProcessorBase{
                                 break;
                             }
                             try {
-                                UUID new_id = UUID.fromString(holder.getRest());
+                                UUID new_id = UUID.fromString(holder.getNextArg());
                                 Character ch = Pool.getCharacter(new_id);
                                 if (ch.isUsed()) {
                                     reply("err");
@@ -297,7 +316,7 @@ public class MsgProcessorShort extends MsgProcessorBase{
             }
             case help:
                 reply(new TranslateHelper(
-                        holder.hasNext() ? holder.getRest() : "help",
+                        holder.hasNext() ? holder.getNextArg() : "help",
                         2
                 ).translate(lang_name));
                 break;
@@ -535,7 +554,7 @@ public class MsgProcessorShort extends MsgProcessorBase{
                 break;
             }
             case version:
-                reply("Main.version");
+                reply(JavaMain.version);
                 break;
             case unknown:
             default:
@@ -544,6 +563,14 @@ public class MsgProcessorShort extends MsgProcessorBase{
         return holder.getCmd().type.getId();
     }
 
+    /**
+     * execute every "{}" block which is command.
+     * recursion is allow using .exec; without .exec, inner block will be reseverde
+     *
+     * @param proc a valid processor.
+     * @param str  input string.
+     * @return input string with all "{}" blocks replaced with command result.
+     */
     public static String wrapper(MsgProcessorShort proc, String str) {
         int i = str.indexOf('{');
         int j;
@@ -551,8 +578,8 @@ public class MsgProcessorShort extends MsgProcessorBase{
         String sub_str;
         StringBuilder builder = new StringBuilder();
         while (i != -1) {
-            j = str.indexOf('}', i);
-            if (j > 0) {
+            j = StringHelper.encloseBracket(str, i);
+            if (j > 0 && j < str.length()) {
                 sub_str = str.substring(i + 1, j);
                 proc.setMsg(sub_str);
                 if (proc.process() == 1) {

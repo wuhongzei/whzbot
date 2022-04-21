@@ -31,7 +31,7 @@ public enum Permission {
         int h = has.getLevel();
 
         if (r == 12)
-            return h > 2 && h % 4 != 0;
+            return h > 1;
         if (r == 13)
             return h > 4 && h % 4 > 1;
         if (r % 4 == 1 || h % 4 != 0)
