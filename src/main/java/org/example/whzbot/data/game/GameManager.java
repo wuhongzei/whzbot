@@ -11,6 +11,8 @@ import java.util.function.Function;
 
 import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.data.IUser;
+import org.example.whzbot.data.Pool;
+import org.example.whzbot.data.User;
 import org.example.whzbot.data.game.Nylium.NyliumMatch;
 import org.example.whzbot.data.game.TicTacToe.MatchTicTacToe;
 import org.example.whzbot.helper.TranslateHelper;
@@ -41,9 +43,7 @@ public class GameManager {
     public static final HashMap<String, Function<IRule, IMatch<? extends IGame>>> game_factories = new HashMap<>();
 
     public static BiConsumer<Long, String> send = (Long id, String msg) -> System.out.println(id.toString() + "<-" + msg);
-    public static BiFunction<String, String, String> translator = (String msg, String lang) -> {
-        return new TranslateHelper(msg, 1).translate(lang);
-    };
+    public static BiFunction<TranslateHelper, String, String> translator = TranslateHelper::translate;
 
     public static void init(Bot bot) {
         game_factories.put("tictactoe", MatchTicTacToe::make);
@@ -59,34 +59,34 @@ public class GameManager {
 
     public static String executeCmd(IUser user, CommandHolder holder) {
         if (!holder.hasNext())
-            return "game.err_empty";
+            return getReply(user, "game.err_empty");
         switch (holder.getNextWord()) {
             case "init": {
                 if (!holder.hasNext())
-                    return "game.err_no_game";
+                    return getReply(user, "game.err_no_game");
                 String game_name = holder.getNextWord();
                 Function<IRule, IMatch<? extends IGame>> maker = game_factories.get(game_name);
                 if (maker == null)
-                    return "game.err_no_game";
+                    return getReply(user, "game.err_no_game");
 
                 // rules read game setting.
-                String game_setting = holder.hasNext() ? holder.getRest(): "";
+                String game_setting = holder.hasNext() ? holder.getRest() : "";
 
                 // check no current game.
                 String cur = user.getStorage("game.live");
                 if (!cur.isEmpty())
-                    return "game.err_in_game";
+                    return getReply(user, "game.err_in_game");
                 IMatch<? extends IGame> match = maker.apply(null);
                 match.join(user.getId());
                 UUID uuid = UUID.randomUUID();
                 match.assignUUID(uuid);
                 matches.put(uuid, match);
                 user.setStorage("game.live", uuid.toString());
-                return "game.init " + uuid.toString();
+                return getReply(user, "game.init", uuid.toString());
             }
             case "join": {
                 if (!holder.hasNext()) {
-                    return "game.search_empty";
+                    return getReply(user, "game.search_empty");
                 } else {
                     String uuid_str = holder.getNextArg();
                     IMatch<? extends IGame> match;
@@ -94,70 +94,112 @@ public class GameManager {
                         UUID uuid = UUID.fromString(uuid_str);
                         match = matches.get(uuid);
                     } catch (IllegalArgumentException e) {
-                        return "game.invalid_uuid";
+                        return getReply(user, "game.invalid_uuid");
                     }
                     if (match == null)
-                        return "game.err_no_match";
+                        return getReply(user, "game.err_no_match");
                     match.join(user.getId());
-                    send.accept(match.getPlayers()[0], "game.joined");
+                    send.accept(match.getPlayers()[0], getReply(
+                            match.getPlayers()[0], "game.join", ""));
 
                     user.setStorage("game.live", match.getUUID().toString());
-                    return "game.join";
+                    return getReply(user, "game.join");
                 }
             }
             case "watch":
             case "ob":
             case "observe":
-                return "game.watch";
+                return getReply(user, "game.watch");
             case "quit":
-                return "game.quit";
+                return getReply(user, "game.quit");
             case "begin": {
                 IMatch<? extends IGame> match = getMatch(user);
                 if (match == null)
-                    return "game.err_not_in_match";
+                    return getReply(user, "game.err_not_in_match");
                 if (holder.hasNext() && holder.isNextWord() &&
                         holder.getNextWord().equals("self")) {
                     match.join(user.getId());
                 }
                 if (match.begin()) {
                     for (long id : match.getPlayers()) {
-                        send.accept(id, "game.begin");
+                        send.accept(id, getReply(id, "game.begin", user.getNickName()));
                     }
                 } else {
-                    return "game.not_begin";
+                    return getReply(user, "game.not_begin");
                 }
                 long next_id = match.getNextPlayer();
-                send.accept(next_id, "game.your_turn " + match.getBoard());
-                return "game.begin";
+                send.accept(
+                        next_id,
+                        getReply(next_id, "game.your_turn", match.getBoard().toString())
+                );
+                return getReply(user, "game.begin", match.getPlayers()[1]);
             }
             case "move": {
                 IMatch<? extends IGame> match = getMatch(user);
                 if (match == null)
-                    return "game.err_not_in_match";
+                    return getReply(user, "game.err_not_in_match");
                 if (match.getPhase() != 1)
-                    return "game.err_not_playing";
+                    return getReply(user, "game.err_not_playing");
                 if (match.getNextPlayer() != user.getId())
-                    return "game.err_not_your_turn";
+                    return getReply(user, "game.err_not_your_turn");
                 String move = holder.getNextArg();
                 if (match.move(move)) {
                     if (match.getPhase() == 1) {
-                        send.accept(match.getNextPlayer(), "game.last_move" + move);
-                        send.accept(user.getId(), "game.updated " + match.getBoard());
+                        send.accept(
+                                match.getNextPlayer(),
+                                getReply(match.getNextPlayer(), "game.last_move", move)
+                        );
+                        send.accept(
+                                match.getNextPlayer(),
+                                getReply(match.getNextPlayer(), "game.your_turn", match.getBoard().toString())
+                        );
                     } else {
                         for (long id : match.getPlayers()) {
-                            send.accept(id, "game.end" + match.getResult(id));
+                            send.accept(id,
+                                    getReply(id, "game.end", String.valueOf(match.getResult(id)))
+                            );
                             user.setStorage("game.live", "");
                         }
                     }
-                    return "game.updated " + match.getBoard();
+                    return getReply(user, "game.updated", match.getBoard().toString());
                 } else {
-                    return "game.err_invalid_move";
+                    return getReply(user, "game.err_invalid_move");
                 }
             }
             default:
-                return "game.unknown";
+                return getReply(user, "game.unknown");
         }
     }
+
+    private static String getReply(IUser user, String s) {
+        return translator.apply(
+                new TranslateHelper(s, new String[]{user.getNickName()}, 1),
+                user.getLang());
+    }
+
+    private static String getReply(IUser user, String s, String s1) {
+        return translator.apply(
+                new TranslateHelper(s, new String[]{user.getNickName(), s1}, 1),
+                user.getLang());
+    }
+
+    private static String getReply(long id, String s, String s1) {
+        User user = Pool.getUser(id);
+        return translator.apply(
+                new TranslateHelper(s, new String[]{user.getNickName(), s1}, 1),
+                user.getLang());
+    }
+
+    private static String getReply(IUser user, String s, long usr_id1) {
+        User p2 = Pool.getUser(usr_id1);
+        String s1 = p2.getNickName();
+        if (s1.isEmpty())
+            s1 = String.valueOf(usr_id1);
+        return translator.apply(
+                new TranslateHelper(s, new String[]{user.getNickName(), s1}, 1),
+                user.getLang());
+    }
+
 
     private static IMatch<? extends IGame> getMatch(IUser user) {
         String uuid_str = user.getStorage("game.live");
