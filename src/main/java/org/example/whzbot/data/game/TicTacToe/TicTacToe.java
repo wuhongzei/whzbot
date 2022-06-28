@@ -199,7 +199,7 @@ public class TicTacToe implements IGame {
             else
                 temp[i] = 'X';
         }
-        return String.format("%c%c%c\n%c%c%c\n%c%c%c",
+        return String.format("%c%c%c\n%c%c%c\n%c%c%c\n",
                 temp[0], temp[1], temp[2],
                 temp[3], temp[4], temp[5],
                 temp[6], temp[7], temp[8]

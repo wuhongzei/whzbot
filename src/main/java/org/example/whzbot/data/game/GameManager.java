@@ -11,6 +11,7 @@ import java.util.function.Function;
 
 import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.data.IUser;
+import org.example.whzbot.data.game.Nylium.NyliumMatch;
 import org.example.whzbot.data.game.TicTacToe.MatchTicTacToe;
 import org.example.whzbot.helper.TranslateHelper;
 
@@ -47,6 +48,8 @@ public class GameManager {
     public static void init(Bot bot) {
         game_factories.put("tictactoe", MatchTicTacToe::make);
         game_factories.put("TicTacToe", MatchTicTacToe::make);
+        game_factories.put("JunYan", NyliumMatch::make);
+        game_factories.put("junyan", NyliumMatch::make);
         send = (Long id, String msg) -> {
             Friend f = bot.getFriend(id);
             if (f != null)
@@ -67,7 +70,7 @@ public class GameManager {
                     return "game.err_no_game";
 
                 // rules read game setting.
-                String game_setting = holder.getRest();
+                String game_setting = holder.hasNext() ? holder.getRest(): "";
 
                 // check no current game.
                 String cur = user.getStorage("game.live");
@@ -112,10 +115,16 @@ public class GameManager {
                 IMatch<? extends IGame> match = getMatch(user);
                 if (match == null)
                     return "game.err_not_in_match";
+                if (holder.hasNext() && holder.isNextWord() &&
+                        holder.getNextWord().equals("self")) {
+                    match.join(user.getId());
+                }
                 if (match.begin()) {
                     for (long id : match.getPlayers()) {
                         send.accept(id, "game.begin");
                     }
+                } else {
+                    return "game.not_begin";
                 }
                 long next_id = match.getNextPlayer();
                 send.accept(next_id, "game.your_turn " + match.getBoard());
