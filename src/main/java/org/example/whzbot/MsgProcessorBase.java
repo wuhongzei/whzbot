@@ -27,7 +27,8 @@ import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.helper.CardDeckHelper;
 import org.example.whzbot.storage.GlobalVariable;
 import org.example.whzbot.storage.Language;
-import org.example.whzbot.storage.json.Json;
+import org.example.whzbot.storage.json.JsonListNode;
+import org.example.whzbot.storage.json.JsonLoader;
 import org.example.whzbot.storage.json.JsonNode;
 import org.example.whzbot.storage.json.JsonStringNode;
 
@@ -156,7 +157,7 @@ public abstract class MsgProcessorBase {
         if (this.user.getSetting("web.on", 0) != 0 &&
                 this.user.getSetting("web.anti_app", 0) != 0
         ) {
-            JsonNode node = Json.fromString(((LightApp) msg).getContent());
+            JsonNode node = new JsonLoader(((LightApp) msg).getContent(), "").load();
             if (node != null) {
                 JsonNode str_node = node.get("meta.detail_1.host.qqdocurl");
                 if (!(str_node instanceof JsonStringNode)) {
@@ -471,7 +472,7 @@ public abstract class MsgProcessorBase {
                         break;
                     case "err":
                         reply(new TranslateHelper(
-                                "san_check.err" + result[1], 1
+                                "san_check.err." + result[1], 1
                         ).translate(lang_name));
                         break;
                     default:
@@ -595,7 +596,7 @@ public abstract class MsgProcessorBase {
                 break;
             case deck: {
                 if (holder.hasNext()) {
-                    String deck_name = holder.getNextWord();
+                    String deck_name = holder.getNextArg();
                     if (!GlobalVariable.CARD_DECK.containsKey(deck_name)) {
                         reply(new TranslateHelper(
                                 "deck.err.deck_not_found", 1
@@ -921,6 +922,58 @@ public abstract class MsgProcessorBase {
                         break;
                     default:
                         reply("Reloading! Nope, it's a plank.");
+                        break;
+                }
+                break;
+            }
+            case update: {
+                if (!holder.hasNext()) {
+                    replyTranslated(new TranslateHelper(
+                            "illegal_arg", 1
+                    ).translate(lang_name));
+                    break;
+                }
+                String update_type = holder.getNextWord();
+
+                String path = holder.getNextArg();
+                String value = holder.getNextArg();
+                switch (update_type) {
+                    case "alias": // "alias" "cmd (var)"
+                        GlobalVariable.updateAlias(path, value);
+                        reply("updated Alias");
+                        break;
+                    case "lang":
+                    case "language": // "lang.[doc/var/ctl]" "path" "val"
+                        int i = path.indexOf('.');
+                        GlobalVariable.updateLanguage(
+                                path.substring(0, i), path.substring(i + 1),
+                                value, holder.getNextArg()
+                        );
+                        reply("updated Language");
+                        break;
+                    case "deck": // ["deck.card" int]/["deck" json_list["cards"]"
+                    case "carddeck":
+                        holder.revert(1);
+                        if (holder.isNextInt()) {
+                            i = path.lastIndexOf('.');
+                            GlobalVariable.updateCardDeck(
+                                    path.substring(0, i), path.substring(i + 1),
+                                    Integer.parseInt(value)
+                            );
+                        } else {
+                            reply("{" + '"' + path + "\":" + value + "}");
+                            JsonListNode temp = (JsonListNode) new JsonLoader(value, path).load();
+                            if (temp == null) {
+                                reply("invalid json");
+                                break;
+                            }
+                            reply(temp.toString());
+                            GlobalVariable.updateCardDeck(path, temp);
+                        }
+                        reply("updated Card Deck");
+                        break;
+                    default:
+                        reply("?");
                         break;
                 }
                 break;

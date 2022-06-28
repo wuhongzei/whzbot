@@ -3,6 +3,7 @@ package org.example.whzbot.command;
 import java.util.Map;
 
 import org.example.whzbot.helper.StringHelper;
+import org.example.whzbot.helper.TreeHelper;
 
 public class CommandHolder {
     protected String cmd_arg;
@@ -12,13 +13,18 @@ public class CommandHolder {
     protected String next_arg = null;
     protected Command cmd;
 
+    protected TreeHelper index_tree; // stores the beginning of each 'node' of command
+
     private static Map<String, String> CMD_ALIAS; // str, str
     private static Map<String, String> DRAW_ALIAS; // str, str str
     private static Map<String, String> PRESET_ALIAS;
 
+
     public CommandHolder(String text, int index) {
         this.cmd_arg = text;
         this.cursor = index;
+        this.index_tree = new TreeHelper();
+        index_tree.put(-1, new TreeHelper.TreeNode(index));
 
         this.cmd_name = this.getNextWord();
         if (CMD_ALIAS.containsKey(this.cmd_name))
@@ -29,7 +35,8 @@ public class CommandHolder {
         } else if (PRESET_ALIAS.containsKey(this.cmd_name)) {
             String[] cmd_and_arg = PRESET_ALIAS.get(this.cmd_name).split(" ");
             this.cmd_name = cmd_and_arg[0];
-            this.next_arg = cmd_and_arg[1];
+            if (cmd_and_arg.length > 1)
+                this.next_arg = cmd_and_arg[1];
         }
         this.cmd = Command.fromString(this.cmd_name);
     }
@@ -86,6 +93,8 @@ public class CommandHolder {
             int i = StringHelper.endOfWord(this.cmd_arg, this.cursor);
             String rtn = this.cmd_arg.substring(this.cursor, i);
             this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+
+            this.index_tree.put(this.cursor);
             return rtn;
         } else {
             String rtn = this.next_arg;
@@ -109,6 +118,8 @@ public class CommandHolder {
                 int i = StringHelper.encloseBracket(this.cmd_arg, this.cursor);
                 String rtn = this.cmd_arg.substring(this.cursor + 1, i);
                 this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+
+                this.index_tree.put(this.cursor);
                 return rtn;
             } else {
                 int i = this.cmd_arg.indexOf(' ', this.cursor);
@@ -116,6 +127,8 @@ public class CommandHolder {
                     i = this.cmd_arg.length();
                 String rtn = this.cmd_arg.substring(this.cursor, i);
                 this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+
+                this.index_tree.put(this.cursor);
                 return rtn;
             }
         } else {
@@ -129,12 +142,14 @@ public class CommandHolder {
         int i = StringHelper.endOfInt(this.cmd_arg, this.cursor);
         String rtn = this.cmd_arg.substring(this.cursor, i);
         this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+        this.index_tree.put(this.cursor);
         return rtn;
     }
 
     public String getNextSign() {
         String rtn = this.cmd_arg.substring(this.cursor, this.cursor + 1);
         this.cursor = StringHelper.skipSpace(this.cmd_arg, this.cursor + 1);
+        this.index_tree.put(this.cursor);
         return rtn;
     }
 
@@ -148,6 +163,7 @@ public class CommandHolder {
         String rtn = signed ? "-" : "";
         rtn += i == cursor ? "0" : this.cmd_arg.substring(this.cursor, i);
         this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+        this.index_tree.put(this.cursor);
         return rtn;
     }
 
@@ -172,11 +188,8 @@ public class CommandHolder {
         } else {
             this.cursor = i;
         }
+        this.index_tree.put(this.cursor);
         return rtn;
-    }
-
-    public int getCursor() {
-        return this.cursor;
     }
 
     public boolean hasNext() {
@@ -217,18 +230,18 @@ public class CommandHolder {
         }
     }
 
+    public int getCursor() {
+        return this.cursor;
+    }
+
     /**
-     * Move back cursor for length + space indices.
+     * Move back cursor with length + space
      *
      * @param length distance to move back cursor (exclude space)
      */
     public void revert(int length) {
-        this.cursor--;
-        while (StringHelper.isSpace(this.cmd_arg.charAt(cursor)))
-            this.cursor--;
-        this.cursor -= length - 1;
+        this.cursor = this.index_tree.getPrev(index_tree.cursor).val;
     }
-
 
     public static boolean isCommand(String text) {
         return text.length() >= 2 &&

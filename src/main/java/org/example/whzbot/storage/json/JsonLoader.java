@@ -22,23 +22,30 @@ public class JsonLoader {
         }
     }
 
+    public JsonLoader(String json_str, String name) {
+        this.file = null;
+        this.str = json_str;
+    }
+
     /*
      * Loads a json tree from json file or a directory.
      * return null if file not found.
      */
     public JsonNode load() {
-        if (this.file.isDirectory())
-            return null;
-        FileInputStream stream;
-        try {
-            stream = new FileInputStream(file);
-            Charset charset = ProfileSaveAndLoad.detectCharset(file);
-            if (charset != null)
-                this.str = new String(stream.readAllBytes(), charset);
-            else
-                this.str = new String(stream.readAllBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (this.file != null) {
+            if (this.file.isDirectory())
+                return null;
+            FileInputStream stream;
+            try {
+                stream = new FileInputStream(file);
+                Charset charset = ProfileSaveAndLoad.detectCharset(file);
+                if (charset != null)
+                    this.str = new String(stream.readAllBytes(), charset);
+                else
+                    this.str = new String(stream.readAllBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         if (this.str.isBlank())
             return new JsonObjectNode();

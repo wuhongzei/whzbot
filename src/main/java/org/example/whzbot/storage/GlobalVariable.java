@@ -6,6 +6,7 @@ import java.util.HashMap;
 
 import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.data.gacha.GachaPool;
+import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonListNode;
 import org.example.whzbot.storage.json.JsonLoader;
 import org.example.whzbot.storage.json.JsonLongNode;
@@ -14,8 +15,9 @@ import org.example.whzbot.storage.json.JsonObjectNode;
 import org.example.whzbot.storage.json.JsonStringNode;
 
 public class GlobalVariable {
+    // todo: used of three different type is redundant, merge them.
     private static final HashMap<String, String> CMD_ALIAS = new HashMap<>(); // str, str
-    private static final HashMap<String, String> DRAW_ALIAS = new HashMap<>(); // str, str str
+    private static final HashMap<String, String> DRAW_ALIAS = new HashMap<>(); // str, "str str"
     private static final HashMap<String, String> PRESET_ALIAS = new HashMap<>();
 
     public static final HashMap<String, String> LANGUAGE_LIST = new HashMap<>();
@@ -73,7 +75,6 @@ public class GlobalVariable {
         try {
             JsonLoader loader = new JsonLoader(path);
             json = (JsonObjectNode) loader.load();
-
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
@@ -113,7 +114,8 @@ public class GlobalVariable {
         for (JsonNode node : json) {
             if (node instanceof JsonListNode) {
                 GachaPool pool = new GachaPool((JsonListNode) node);
-                GACHA_POOL.put(pool.getName(), pool);
+                if (GACHA_POOL.put(pool.getName(), pool) != null)
+                    System.out.println("duplicate pool name: " + pool.getName());
             }
         }
     }
@@ -121,5 +123,88 @@ public class GlobalVariable {
     public static void loadDefaultSetting(String path_group, String path_user) {
         ProfileSaveAndLoad.loadFlatJson(DEFAULT_GROUP_SETTING, path_group);
         ProfileSaveAndLoad.loadFlatJson(DEFAULT_USER_SETTING, path_user);
+    }
+
+    public static void updateAlias(String str, String cmd) {
+        PRESET_ALIAS.put(str, cmd);
+    }
+
+    /**
+     * Change amount of a card in a deck.
+     *
+     * @param path path (name) of the deck.
+     * @param card name (value) of the card in deck.
+     * @param num  new number for the card.
+     * @implNote This method counts number of cards. If equal number, no change.
+     * Otherwise, it copy all other cards into an new array then copy card * num times.
+     */
+    public static void updateCardDeck(String path, String card, int num) {
+        String[] cards = CARD_DECK.get(path);
+        int count = 0;
+        for (String s : cards) {
+            if (s.equals(card))
+                count++;
+        }
+        if (count == num)
+            return;
+
+        String[] new_cards = new String[cards.length + num - count];
+        int i = 0;
+        for (String s : cards) {
+            if (!s.equals(card)) {
+                new_cards[i] = s;
+                i++;
+            }
+        }
+        for (; i < cards.length + num - count; i++)
+            new_cards[i] = card;
+        CARD_DECK.put(path, new_cards);
+    }
+
+    public static void updateCardDeck(String path, JsonListNode deck) {
+        ArrayList<String> cards = new ArrayList<>();
+        for (JsonNode item_node : deck) {
+            if (item_node instanceof JsonStringNode)
+                cards.add(item_node.getContent());
+            else if (item_node instanceof JsonObjectNode) {
+                int weight = Json.readInt(
+                        (JsonObjectNode) item_node,
+                        "weight", 0
+                );
+                String card = Json.readString(
+                        (JsonObjectNode) item_node,
+                        "card", ""
+                );
+                for (int i = 0; i < weight; i++)
+                    cards.add(card);
+            }
+        }
+
+        if (path == null || path.isEmpty())
+            path = deck.getName();
+        CARD_DECK.put(path, cards.toArray(new String[0]));
+    }
+
+    public static void updateLanguage(
+            String lang_name, String lang_type,
+            String path, String value) {
+        Language lang = LANGUAGES.get(lang_name);
+        if (lang == null)
+            return;
+        HashMap<String, String> map;
+        switch (lang_type) {
+            case "var":
+            case "variable":
+                map = lang.global_variables;
+                break;
+            case "doc":
+            case "help":
+            case "help_doc":
+                map = lang.help_doc;
+                break;
+            default:
+                map = lang.card_translation;
+        }
+        map.put(path, value);
     }
 }
