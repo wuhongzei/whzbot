@@ -3,6 +3,7 @@ package org.example.whzbot.data.game;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Friend;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -13,6 +14,7 @@ import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.data.User;
+import org.example.whzbot.data.game.Chess.ChessMatch;
 import org.example.whzbot.data.game.Nylium.NyliumMatch;
 import org.example.whzbot.data.game.TicTacToe.MatchTicTacToe;
 import org.example.whzbot.helper.TranslateHelper;
@@ -50,6 +52,8 @@ public class GameManager {
         game_factories.put("TicTacToe", MatchTicTacToe::make);
         game_factories.put("JunYan", NyliumMatch::make);
         game_factories.put("junyan", NyliumMatch::make);
+        game_factories.put("chess", ChessMatch::make);
+        game_factories.put("Chess", ChessMatch::make);
         send = (Long id, String msg) -> {
             Friend f = bot.getFriend(id);
             if (f != null)
@@ -142,6 +146,8 @@ public class GameManager {
                     return getReply(user, "game.err_not_playing");
                 if (match.getNextPlayer() != user.getId())
                     return getReply(user, "game.err_not_your_turn");
+                if (!holder.hasNext())
+                    return Arrays.toString(match.hint());
                 String move = holder.getNextArg();
                 if (match.move(move)) {
                     if (match.getPhase() == 1) {

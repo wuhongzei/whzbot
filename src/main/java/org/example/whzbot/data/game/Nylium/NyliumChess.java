@@ -9,7 +9,6 @@ import org.example.whzbot.storage.json.JsonObjectNode;
 import static java.lang.System.arraycopy;
 
 /**
- *
  * <p>
  * in game id can be 1 / 2
  */
@@ -38,6 +37,7 @@ public class NyliumChess implements IGame {
         }
     }
 
+    @SuppressWarnings("unused")
     public NyliumChess(byte[] identity, NyliumRule rule_in) {
         this(rule_in);
         int bias = 2;
@@ -254,21 +254,16 @@ public class NyliumChess implements IGame {
     }
 
     public String toString() {
-        char[] temp = new char[64];
-        for (int i = 0; i < 64; i++) {
-            if (this.board[i] == 0)
-                temp[i] = '_';
-            else if (this.board[i] == 1)
-                temp[i] = 'o';
-            else
-                temp[i] = 'x';
-        }
-        StringBuilder rtn = new StringBuilder("  a b c d e f g h\n");
+        StringBuilder rtn = new StringBuilder(" a b c d e f g h\n");
         for (int i = 7; i >= 0; i--) {
             rtn.append((char) (i + 49));
             for (int j = 0; j < 8; j++) {
-                rtn.append(' ');
-                rtn.append(temp[i * 8 + j]);
+                if (this.board[i * 8 + j] == 0)
+                    rtn.append("   ");
+                else if (this.board[i * 8 + j] == 1)
+                    rtn.append('\u2659');
+                else
+                    rtn.append('\u265f');
             }
             rtn.append('\n');
         }

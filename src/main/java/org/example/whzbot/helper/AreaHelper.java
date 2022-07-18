@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Queue;
@@ -14,10 +15,10 @@ import java.util.function.Predicate;
 public class AreaHelper implements Iterable<Integer> {
     int width;
     int height;
-    ArrayDeque<Integer> queue;
+    Set<Integer> set;
 
     public AreaHelper(int w, int h) {
-        this.queue = new ArrayDeque<>();
+        this.set = new HashSet<>();
         this.width = w;
         this.height = h;
     }
@@ -26,12 +27,12 @@ public class AreaHelper implements Iterable<Integer> {
      * Empty selected area, prepare for reuse.
      */
     public void clear() {
-        this.queue.clear();
+        this.set.clear();
     }
 
     //public int size() {return this.width * this.height;}
     public int size() {
-        return this.queue.size();
+        return this.set.size();
     }
 
     /**
@@ -39,8 +40,12 @@ public class AreaHelper implements Iterable<Integer> {
      *
      * @param p a valid location, p=x*y, x in [0,w) and y in [0,h)
      */
-    protected void add(int p) {
-        this.queue.add(p);
+    public void add(int p) {
+        this.set.add(p);
+    }
+
+    public boolean has(int p) {
+        return this.set.contains(p);
     }
 
     /**
@@ -54,13 +59,13 @@ public class AreaHelper implements Iterable<Integer> {
         int x = centre % this.width;
         int y = centre / this.width;
         if (x > 0)
-            this.queue.add(centre - 1);
+            this.set.add(centre - 1);
         if (x < this.width - 1)
-            this.queue.add(centre + 1);
+            this.set.add(centre + 1);
         if (y > 0)
-            this.queue.add(centre - this.width);
+            this.set.add(centre - this.width);
         if (y < this.height - 1)
-            this.queue.add(centre + this.width);
+            this.set.add(centre + this.width);
         return this;
     }
 
@@ -266,7 +271,7 @@ public class AreaHelper implements Iterable<Integer> {
         }
 
         contain.remove(-1);
-        this.queue.addAll(contain);
+        this.set.addAll(contain);
         return this;
     }
 
@@ -394,14 +399,14 @@ public class AreaHelper implements Iterable<Integer> {
     @NotNull
     @Override
     public Iterator<Integer> iterator() {
-        return new AreaIterator(this.queue.clone());
+        return new AreaIterator(this.set);
     }
 
     public static class AreaIterator implements Iterator<Integer> {
         Queue<Integer> queue;
 
-        protected AreaIterator(Queue<Integer> q) {
-            this.queue = q;
+        protected AreaIterator(Set<Integer> s) {
+            this.queue = new ArrayDeque<>(Arrays.asList(s.toArray(new Integer[0])));
         }
 
         @Override
@@ -413,6 +418,148 @@ public class AreaHelper implements Iterable<Integer> {
         public Integer next() {
             return this.queue.poll();
         }
+    }
+
+    /**
+     * Add a cross from loc.
+     *
+     * @param loc          center of selection.
+     * @param no_break     if test gives false, break in this dir anyways.
+     * @param size         maximum size of cross in one side.
+     * @param include_edge if true, breaking edges will also be included.
+     * @return this, with a cross selected.
+     */
+    public AreaHelper addCross(int loc, Predicate<Integer> no_break, int size, boolean include_edge) {
+        int i;
+        int c = 0;
+        if (this.hasUp(loc)){
+            for (i = this.getUp(loc); this.hasUp(i) && no_break.test(i) && c < size;
+                 i = this.getUp(i)) {
+                c++;
+                this.add(i);
+            }
+            if (include_edge || no_break.test(i))
+                this.add(i);
+        }
+        c = 0;
+        if (this.hasDown(loc)){
+            for (i = this.getDown(loc);
+                 this.hasDown(i) && no_break.test(i) && c < size; i = this.getDown(i)) {
+                c++;
+                this.add(i);
+            }
+            if (include_edge || no_break.test(i))
+                this.add(i);
+        }
+        c = 0;
+        if (this.hasLeft(loc)){
+            for (i = this.getLeft(loc);
+                 this.hasLeft(i) && no_break.test(i) && c < size; i = this.getLeft(i)) {
+                c++;
+                this.add(i);
+            }
+            if (include_edge || no_break.test(i))
+                this.add(i);
+        }
+        c = 0;
+        if(this.hasRight(loc)){
+            for (i = this.getRight(loc); this.hasRight(i) && no_break.test(i) && c < size; i = this.getRight(i)) {
+                c++;
+                this.add(i);
+            }
+            if (include_edge || no_break.test(i))
+                this.add(i);
+        }
+        return this;
+    }
+
+    /**
+     * Add a diagonal from loc.
+     *
+     * @param loc          center of selection.
+     * @param no_break     if test gives false, break in this dir anyways.
+     * @param size         maximum size of cross in one side.
+     * @param include_edge if true, breaking edges will also be included.
+     * @return this, with a cross selected.
+     */
+    public AreaHelper addDiagonal(int loc, Predicate<Integer> no_break, int size, boolean include_edge) {
+        int i;
+        int c = 0;
+        if (this.hasUp(loc) && this.hasLeft(loc)) {
+            for (i = this.getUpLeft(loc);
+                 this.hasUp(i) && this.hasLeft(i) && no_break.test(i) && c < size;
+                 i = this.getUpLeft(i)) {
+                c++;
+                this.add(i);
+            }
+            if (include_edge || no_break.test(i))
+                this.add(i);
+        }
+        c = 0;
+        if (this.hasDown(loc) && this.hasLeft(loc)) {
+            for (i = this.getDownLeft(loc);
+                 this.hasDown(i) && this.hasLeft(i) && no_break.test(i) && c < size;
+                 i = this.getDownLeft(i)) {
+                c++;
+                this.add(i);
+            }
+            if (include_edge || no_break.test(i))
+                this.add(i);
+        }
+        c = 0;
+        if (this.hasUp(loc) && this.hasRight(loc)) {
+            for (i = this.getUpRight(loc);
+                 this.hasUp(i) && this.hasRight(i) && no_break.test(i) && c < size;
+                 i = this.getUpRight(i)) {
+                c++;
+                this.add(i);
+            }
+            if (include_edge || no_break.test(i))
+                this.add(i);
+        }
+        c = 0;
+        if (this.hasDown(loc) && this.hasRight(loc)) {
+            for (i = this.getDownRight(loc);
+                 this.hasDown(i) && this.hasRight(i) && no_break.test(i) && c < size;
+                 i = this.getDownRight(i)) {
+                c++;
+                this.add(i);
+            }
+            if (include_edge || no_break.test(i))
+                this.add(i);
+        }
+        return this;
+    }
+
+
+    public AreaHelper addHorseJump(int loc, Predicate<Integer> is_blocked) {
+        int x = loc % this.width;
+        int y = loc / this.width;
+        if (y > 1 && !is_blocked.test(loc - this.width)) {
+            if (x > 0)
+                this.add(loc - 1 - 2 * this.width);
+            if (x < this.width - 1)
+                this.add(loc + 1 - 2 * this.width);
+        }
+        if (x > 1 && !is_blocked.test(loc - 1)) {
+            if (y > 0)
+                this.add(loc - 2 - this.width);
+            if (y < this.height - 1)
+                this.add(loc - 2 + this.width);
+        }
+        if (y < this.height - 1 && !is_blocked.test(loc + this.width)) {
+            if (x > 0)
+                this.add(loc - 1 + 2 * this.width);
+            if (x < this.width - 1)
+                this.add(loc + 1 + 2 * this.width);
+        }
+        if (x < this.width - 2 && !is_blocked.test(loc + 1)) {
+            if (y > 0)
+                this.add(loc + 2 - this.width);
+            if (y < this.height - 1)
+                this.add(loc + 2 + this.width);
+        }
+        return this;
     }
 
 

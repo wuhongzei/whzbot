@@ -135,4 +135,9 @@ public abstract class GeneralChessMatch<
         rtn.add(temp);
         return rtn;
     }
+
+    @Override
+    public String[] hint() {
+        return this.board.moves();
+    }
 }

@@ -44,7 +44,6 @@ public interface IMatch<T extends IGame> {
     boolean quit(long id);
 
     /**
-     *
      * @return get the current state of this match. 0: waiting, 1: playing, 2: ended.
      */
     int getPhase();
@@ -155,4 +154,11 @@ public interface IMatch<T extends IGame> {
      *             str "uuid" the uuid of this match.
      */
     void fromJson(JsonObjectNode root);
+
+    /**
+     * Help new players by giving some (all would be better) possible moves.
+     *
+     * @return A list of moves.
+     */
+    String[] hint();
 }
