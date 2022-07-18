@@ -19,6 +19,8 @@ import org.example.whzbot.helper.StringHelper;
 import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.storage.GlobalVariable;
 import org.example.whzbot.storage.Language;
+import org.example.whzbot.storage.json.JsonListNode;
+import org.example.whzbot.storage.json.JsonLoader;
 
 import java.util.UUID;
 
@@ -27,6 +29,7 @@ public class MsgProcessorShort extends MsgProcessorBase {
     int stack_level = 0; //use to mark up level of recursion, prevent stack overflow.
     int exec_loc = -1;
 
+    @SuppressWarnings("unused")
     public MsgProcessorShort(AbstractMessageEvent event) {
         super(event);
     }
@@ -53,12 +56,12 @@ public class MsgProcessorShort extends MsgProcessorBase {
         this.stack_level++;
     }
 
-    public void redLevel() {
+    public void decLevel() {
         this.stack_level--;
     }
 
     public boolean stackCheck() {
-        return this.exec_loc < 20;
+        return this.stack_level < 3;
     }
 
 
@@ -76,7 +79,11 @@ public class MsgProcessorShort extends MsgProcessorBase {
 
         if (!CommandHolder.isCommand(text))
             return 0;
-        CommandHolder holder = new CommandHolder(text, 1);
+        CommandHolder holder;
+        if (!CommandHolder.isCommand(text))
+            holder = new CommandHolder(text, 0);
+        else
+            holder = new CommandHolder(text, 1);
 
         boolean inhibited = false;
         if (this.isBotOff() && holder.getCmd() != Command.set) {
@@ -556,6 +563,54 @@ public class MsgProcessorShort extends MsgProcessorBase {
             case version:
                 reply(JavaMain.version);
                 break;
+            case update: {
+                if (!holder.hasNext()) {
+                    replyTranslated("illegal_arg");
+                    break;
+                }
+                String update_type = holder.getNextWord();
+
+                String path = holder.getNextArg();
+                String value = holder.getNextArg();
+                switch (update_type) {
+                    case "alias": // "alias" "cmd (var)"
+                        GlobalVariable.updateAlias(path, value);
+                        reply("updated");
+                        break;
+                    case "lang":
+                    case "language": // "lang.[doc/var/ctl]" "path" "val"
+                        int i = path.indexOf('.');
+                        GlobalVariable.updateLanguage(
+                                path.substring(0, i), path.substring(i + 1),
+                                value, holder.getNextArg()
+                        );
+                        reply("updated");
+                        break;
+                    case "deck": // ["deck.card" int]/["deck" json_list["cards"]"
+                    case "carddeck":
+                        holder.revert(1);
+                        if (holder.isNextInt()) {
+                            i = path.lastIndexOf('.');
+                            GlobalVariable.updateCardDeck(
+                                    path.substring(0, i), path.substring(i + 1),
+                                    Integer.parseInt(value)
+                            );
+                        } else {
+                            JsonListNode temp = (JsonListNode) new JsonLoader(value, path).load();
+                            if (temp == null) {
+                                reply("err_json");
+                                break;
+                            }
+                            GlobalVariable.updateCardDeck(path, temp);
+                        }
+                        reply("updated");
+                        break;
+                    default:
+                        reply("null");
+                        break;
+                }
+                break;
+            }
             case unknown:
             default:
                 return 0;
@@ -565,7 +620,7 @@ public class MsgProcessorShort extends MsgProcessorBase {
 
     /**
      * execute every "{}" block which is command.
-     * recursion is allow using .exec; without .exec, inner block will be reseverde
+     * recursion is allow using .exec; without .exec, inner block will be reserved
      *
      * @param proc a valid processor.
      * @param str  input string.
@@ -581,7 +636,13 @@ public class MsgProcessorShort extends MsgProcessorBase {
             j = StringHelper.encloseBracket(str, i);
             if (j > 0 && j < str.length()) {
                 sub_str = str.substring(i + 1, j);
-                proc.setMsg(sub_str);
+                if (proc.stackCheck()) {
+                    proc.addLevel();
+                    proc.setMsg(wrapper(proc, sub_str));
+                    proc.decLevel();
+                } else
+                    proc.setMsg(sub_str);
+
                 if (proc.process() == 1) {
                     builder.append(str, last_i, i);
                     builder.append(proc.getReply());

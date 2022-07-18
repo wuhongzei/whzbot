@@ -29,6 +29,8 @@ public class GlobalVariable {
     public static final HashMap<String, String> DEFAULT_GROUP_SETTING = new HashMap<>();
     public static final HashMap<String, String> DEFAULT_USER_SETTING = new HashMap<>();
 
+    public static final JsonObjectNode UPDATED = new JsonObjectNode();
+
     // Methods to load.
     public static void loadCmdAlias(String path) {
         ProfileSaveAndLoad.loadMap(CMD_ALIAS, path);
@@ -43,6 +45,7 @@ public class GlobalVariable {
     public static void loadPresetAlias(String path) {
         ProfileSaveAndLoad.loadMap(PRESET_ALIAS, path);
         CommandHolder.setPresetAlias(PRESET_ALIAS);
+        UPDATED.add(new JsonObjectNode("alias"));
     }
 
     public static void loadLanguageList(String path) {
@@ -101,6 +104,7 @@ public class GlobalVariable {
                 CARD_DECK.put(list_node.getName(), cards.toArray(new String[0]));
             }
         }
+        UPDATED.add(new JsonObjectNode("deck"));
     }
 
     public static void loadGachaPool(String path) {
@@ -127,6 +131,7 @@ public class GlobalVariable {
 
     public static void updateAlias(String str, String cmd) {
         PRESET_ALIAS.put(str, cmd);
+        UPDATED.get("alias").add(new JsonStringNode(str, cmd));
     }
 
     /**
@@ -149,16 +154,21 @@ public class GlobalVariable {
             return;
 
         String[] new_cards = new String[cards.length + num - count];
+        JsonListNode new_deck = new JsonListNode(path);
         int i = 0;
         for (String s : cards) {
             if (!s.equals(card)) {
                 new_cards[i] = s;
+                new_deck.add(new JsonStringNode(s));
                 i++;
             }
         }
-        for (; i < cards.length + num - count; i++)
+        for (; i < cards.length + num - count; i++) {
             new_cards[i] = card;
+            new_deck.add(new JsonStringNode(card));
+        }
         CARD_DECK.put(path, new_cards);
+        UPDATED.get("deck").add(new_deck);
     }
 
     public static void updateCardDeck(String path, JsonListNode deck) {
@@ -180,9 +190,13 @@ public class GlobalVariable {
             }
         }
 
-        if (path == null || path.isEmpty())
+        if (path == null || path.isEmpty()) {
             path = deck.getName();
+        } else {
+            deck.setName(path);
+        }
         CARD_DECK.put(path, cards.toArray(new String[0]));
+        UPDATED.get("deck").add(deck);
     }
 
     public static void updateLanguage(
@@ -206,5 +220,9 @@ public class GlobalVariable {
                 map = lang.card_translation;
         }
         map.put(path, value);
+    }
+
+    public static void saveUpdated(String path) {
+        ProfileSaveAndLoad.saveJson(UPDATED, path);
     }
 }

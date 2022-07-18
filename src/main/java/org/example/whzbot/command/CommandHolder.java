@@ -121,6 +121,14 @@ public class CommandHolder {
 
                 this.index_tree.put(this.cursor);
                 return rtn;
+            } else if (this.cmd_arg.charAt(this.cursor) == '{' ||
+                    this.cmd_arg.charAt(this.cursor) == '[') {
+                int i = StringHelper.encloseBracket(this.cmd_arg, this.cursor) + 1;
+                String rtn = this.cmd_arg.substring(this.cursor, i);
+                this.cursor = StringHelper.skipSpace(this.cmd_arg, i);
+
+                this.index_tree.put(this.cursor);
+                return rtn;
             } else {
                 int i = this.cmd_arg.indexOf(' ', this.cursor);
                 if (i < 0)

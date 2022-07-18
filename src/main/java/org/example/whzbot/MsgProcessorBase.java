@@ -967,7 +967,6 @@ public abstract class MsgProcessorBase {
                                 reply("invalid json");
                                 break;
                             }
-                            reply(temp.toString());
                             GlobalVariable.updateCardDeck(path, temp);
                         }
                         reply("updated Card Deck");

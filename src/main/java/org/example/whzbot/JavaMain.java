@@ -29,7 +29,7 @@ public class JavaMain {
     public static long master_qq = -1L;
     public static long bot_qq = 0L;
     public static String password = null;
-    public static final String version = "2.9.0.91";
+    public static final String version = "2.9.2.94";
     public static String working_dir = "";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -217,6 +217,7 @@ public class JavaMain {
         Pool.unloadCharacters();
         Pool.unloadGroups();
         Pool.unloadUsers();
+        GlobalVariable.saveUpdated(resource_dir + "/Updated.whz");
     }
 }
 

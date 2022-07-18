@@ -4,7 +4,7 @@ public enum Command {
     state(CommandType.GENERAL, Permission.ANYONE, "state"),
     bot(CommandType.GENERAL, Permission.ANYONE, "bot"),
     help(CommandType.GENERAL, Permission.ANYONE, "help"),
-    exec(CommandType.GENERAL, Permission.ANY_ADMIN, "exec"),
+    exec(CommandType.GENERAL, Permission.ANYONE, "exec"),
     send(CommandType.GENERAL, Permission.ANY_ADMIN, "send"),
     lang(CommandType.GENERAL, Permission.ANYONE, "lang"),
 
