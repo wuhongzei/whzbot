@@ -9,10 +9,7 @@ import org.example.whzbot.storage.json.JsonObjectNode;
 import static java.lang.System.arraycopy;
 
 /**
- * Basic 3x3 game
- * |O|X|O|
- * |X|X|O|
- * |X|O|O|
+ *
  * <p>
  * in game id can be 1 / 2
  */
@@ -21,9 +18,11 @@ public class NyliumChess implements IGame {
     int[] board;
     int turn = 0; // 0=p1, 1=p2
     int count1, count2;// occupancy for p1 and p2.
+    protected int size;
 
     public NyliumChess() {
-        this.board = new int[64];
+        size = 64;
+        this.board = new int[size];
         this.count1 = 0;
         this.count2 = 0;
     }
@@ -45,7 +44,7 @@ public class NyliumChess implements IGame {
         int index = 0;
         int state = identity[0] % 4;
         if (state == 3) {
-            for (int i = 0; i < 64; i++) {
+            for (int i = 0; i < size; i++) {
                 this.board[i] = (identity[index] >> bias) & 1;
                 index += bias / 7;
                 bias = (bias + 1) & 7;
@@ -55,7 +54,7 @@ public class NyliumChess implements IGame {
             int[] h_len = {1, 2, 1, 2};
 
             int temp;
-            for (int i = 0; i < 64; i++) {
+            for (int i = 0; i < size; i++) {
                 temp = (identity[index] >> bias) & 3;
                 bias += h_len[temp];
                 index += bias >> 3;
@@ -178,13 +177,13 @@ public class NyliumChess implements IGame {
         else if (y > 48)
             y -= 49;
         int loc = y * 8 + x;
-        return loc < 64 && board[loc] == 0;
+        return loc < size && board[loc] == 0;
     }
 
     @Override
     public String[] moves() {
         int count = 0;
-        for (int i = 0; i < 64; i++)
+        for (int i = 0; i < size; i++)
             count += (board[i] + 1) / 2;
         String[] rtn = new String[count];
         for (int i = 8; count > 0; i--) {
@@ -196,7 +195,7 @@ public class NyliumChess implements IGame {
 
     @Override
     public boolean isEnd() {
-        return this.count1 + this.count2 == 64;
+        return this.count1 + this.count2 == size;
     }
 
     @Override
@@ -241,7 +240,7 @@ public class NyliumChess implements IGame {
         NyliumChess cln;
         try {
             cln = (NyliumChess) super.clone();
-            cln.board = new int[64];
+            cln.board = new int[size];
         } catch (CloneNotSupportedException e) {
             cln = new NyliumChess();
         }
@@ -258,14 +257,14 @@ public class NyliumChess implements IGame {
         char[] temp = new char[64];
         for (int i = 0; i < 64; i++) {
             if (this.board[i] == 0)
-                temp[i] = ' ';
+                temp[i] = '_';
             else if (this.board[i] == 1)
                 temp[i] = 'o';
             else
                 temp[i] = 'x';
         }
         StringBuilder rtn = new StringBuilder("  a b c d e f g h\n");
-        for (int i = 0; i < 8; i++) {
+        for (int i = 7; i >= 0; i--) {
             rtn.append((char) (i + 49));
             for (int j = 0; j < 8; j++) {
                 rtn.append(' ');
