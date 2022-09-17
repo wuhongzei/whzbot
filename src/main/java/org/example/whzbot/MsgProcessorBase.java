@@ -3,12 +3,16 @@ package org.example.whzbot;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.event.events.AbstractMessageEvent;
 import net.mamoe.mirai.contact.Contact;
+import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.FlashImage;
 import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.LightApp;
 import net.mamoe.mirai.message.data.PlainText;
+import net.mamoe.mirai.message.data.RawForwardMessage;
 import net.mamoe.mirai.message.data.SingleMessage;
+import net.mamoe.mirai.message.data.ForwardMessage;
+import net.mamoe.mirai.message.data.ForwardMessageBuilder;
 
 import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHelper;
@@ -31,6 +35,7 @@ import org.example.whzbot.storage.json.JsonListNode;
 import org.example.whzbot.storage.json.JsonLoader;
 import org.example.whzbot.storage.json.JsonNode;
 import org.example.whzbot.storage.json.JsonStringNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -84,6 +89,56 @@ public abstract class MsgProcessorBase {
                 new String[]{user.getNickName(), val},
                 1
         ).translate(user.getLang()));
+    }
+
+    /**
+     * Zip reply into forward message.
+     * e.g ab, cd, ef -> ab\rcd\ref
+     *
+     * @param tstr     raw untranslated message
+     * @param split    target loc to split on
+     * @param max_line try to split such that each partition is shorter than max_line.
+     */
+    public void replyZipped(TranslateHelper tstr, String split, int max_line) {
+        String rpy = tstr.translate(user.getLang());
+
+        if (rpy.length() < max_line) {
+            reply(rpy);
+            return;
+        }
+
+        net.mamoe.mirai.contact.Group group;
+        if (event instanceof GroupMessageEvent)
+            group = ((GroupMessageEvent) event).getGroup();
+        else
+            group = bot.getGroupOrFail(235212404);
+        ForwardMessageBuilder builder = new ForwardMessageBuilder(group);
+        builder.setDisplayStrategy(new ForwardMessage.DisplayStrategy() {
+            @NotNull
+            @Override
+            public String generateTitle(@NotNull RawForwardMessage forward) {
+                return "BotReply";
+            }
+        });
+        int i = 0, j;
+        String partition;
+
+        while (i + max_line < rpy.length()) {
+            j = rpy.lastIndexOf(split, i + max_line);
+            if (j < i) {
+                j = rpy.indexOf(split, i + max_line);
+                if (j < 0)
+                    j = rpy.length();
+            }
+            partition = rpy.substring(i, j);
+            i = j + split.length();
+            builder.add(bot, new PlainText(partition));
+        }
+        if (i < rpy.length() - 1)
+            builder.add(bot, new PlainText(rpy.substring(i)));
+
+        debug(builder.toString());
+        this.event.getSubject().sendMessage(builder.build());
     }
 
     public void send(String str, Contact someone) {
@@ -617,7 +672,7 @@ public abstract class MsgProcessorBase {
                         ).translate(lang_name));
                     }
                 } else {
-                    reply(new TranslateHelper(
+                    replyZipped(new TranslateHelper(
                             "deck.list",
                             new TranslateHelper[]{
                                     new TranslateHelper(),
@@ -628,7 +683,19 @@ public abstract class MsgProcessorBase {
                                     )
                             },
                             1
-                    ).translate(lang_name));
+                    ), ",", 200);
+                    /*reply(new TranslateHelper(
+                            "deck.list",
+                            new TranslateHelper[]{
+                                    new TranslateHelper(),
+                                    new TranslateHelper(
+                                            ", ",
+                                            GlobalVariable.CARD_DECK.keySet().toArray(new String[0]),
+                                            4
+                                    )
+                            },
+                            1
+                    ).translate(lang_name));*/
                 }
                 break;
             }

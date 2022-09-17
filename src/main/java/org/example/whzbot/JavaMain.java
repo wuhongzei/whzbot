@@ -29,7 +29,7 @@ public class JavaMain {
     public static long master_qq = -1L;
     public static long bot_qq = 0L;
     public static String password = null;
-    public static final String version = "2.9.2.94";
+    public static final String version = "2.9.3.95";
     public static String working_dir = "";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -123,6 +123,7 @@ public class JavaMain {
 
     public static String reLogin(Bot bot, int time) {
         int count = 1;
+        saveProfile();
         while (!bot.isOnline())
             try {
                 bot.login();
