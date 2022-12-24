@@ -21,4 +21,7 @@ public class JsonLongNode extends JsonStringNode{
     public String toString() {
         return String.format("\"%s\":%s", this.name, this.content);
     }
+    public String toString(int lvl, int line_width) {
+        return this.content;
+    }
 }

@@ -1,39 +1,41 @@
 package org.example.whzbot;
 
 import net.mamoe.mirai.Bot;
-import net.mamoe.mirai.event.events.AbstractMessageEvent;
 import net.mamoe.mirai.contact.Contact;
+import net.mamoe.mirai.event.events.AbstractMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.FlashImage;
+import net.mamoe.mirai.message.data.ForwardMessage;
+import net.mamoe.mirai.message.data.ForwardMessageBuilder;
 import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.LightApp;
 import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.message.data.RawForwardMessage;
 import net.mamoe.mirai.message.data.SingleMessage;
-import net.mamoe.mirai.message.data.ForwardMessage;
-import net.mamoe.mirai.message.data.ForwardMessageBuilder;
 
 import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHelper;
 import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.command.CommandType;
 import org.example.whzbot.command.Permission;
+import org.example.whzbot.data.Character;
 import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.Pool;
-import org.example.whzbot.data.Character;
 import org.example.whzbot.data.game.GameManager;
+import org.example.whzbot.helper.CardDeckHelper;
 import org.example.whzbot.helper.DiceHelper;
 import org.example.whzbot.helper.HttpHelper;
 import org.example.whzbot.helper.ProbabilityHelper;
 import org.example.whzbot.helper.RandomHelper;
 import org.example.whzbot.helper.TranslateHelper;
-import org.example.whzbot.helper.CardDeckHelper;
 import org.example.whzbot.storage.GlobalVariable;
 import org.example.whzbot.storage.Language;
+import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonListNode;
 import org.example.whzbot.storage.json.JsonLoader;
 import org.example.whzbot.storage.json.JsonNode;
+import org.example.whzbot.storage.json.JsonObjectNode;
 import org.example.whzbot.storage.json.JsonStringNode;
 import org.jetbrains.annotations.NotNull;
 
@@ -282,6 +284,8 @@ public abstract class MsgProcessorBase {
 
         String[] result;
         switch (holder.getCmd()) {
+            case none:
+                break;
             case echo:
                 if (holder.hasNext())
                     reply(holder.getRest());
@@ -959,9 +963,7 @@ public abstract class MsgProcessorBase {
                     break;
                 }
                 if (!holder.hasNext()) {
-                    replyTranslated(new TranslateHelper(
-                            "illegal_arg", 1
-                    ).translate(lang_name));
+                    replyTranslated("no_arg");
                     break;
                 }
                 switch (holder.getNextWord()) {
@@ -995,9 +997,7 @@ public abstract class MsgProcessorBase {
             }
             case update: {
                 if (!holder.hasNext()) {
-                    replyTranslated(new TranslateHelper(
-                            "illegal_arg", 1
-                    ).translate(lang_name));
+                    replyTranslated("no_arg");
                     break;
                 }
                 String update_type = holder.getNextWord();
@@ -1029,12 +1029,17 @@ public abstract class MsgProcessorBase {
                             );
                         } else {
                             reply("{" + '"' + path + "\":" + value + "}");
-                            JsonListNode temp = (JsonListNode) new JsonLoader(value, path).load();
+                            JsonNode temp = new JsonLoader(value, path).load();
                             if (temp == null) {
                                 reply("invalid json");
                                 break;
                             }
-                            GlobalVariable.updateCardDeck(path, temp);
+                            if (temp instanceof JsonListNode)
+                                GlobalVariable.updateCardDeck(path, (JsonListNode)temp);
+                            else {
+                                reply("expect json list");
+                                break;
+                            }
                         }
                         reply("updated Card Deck");
                         break;
@@ -1042,6 +1047,74 @@ public abstract class MsgProcessorBase {
                         reply("?");
                         break;
                 }
+                break;
+            }
+            case output: {
+                if (event.getSender().getId() != JavaMain.master_qq) {
+                    reply("Who are you?");
+                    break;
+                }
+                if (!holder.hasNext()) {
+                    replyTranslated("no_arg");
+                    break;
+                }
+                String inner_path = holder.getNextArg();
+                if (!holder.hasNext()) {
+                    replyTranslated("no_arg");
+                    break;
+                }
+                String out_name = holder.getNextArg();
+                String file_content = null;
+                switch(inner_path) {
+                    case "carddeck":
+                        JsonObjectNode root = new JsonObjectNode("");
+                        Json.reconstruct(
+                                GlobalVariable.CARD_DECK, root,
+                                (String[] ss) -> {
+                                    JsonListNode node = new JsonListNode();
+                                    for (String s: ss){
+                                        node.add(new JsonStringNode(s));
+                                    }
+                                    return node;
+                                }
+                        );
+                        System.out.println(root);
+                        file_content = root.toString(0, 60);
+                        break;
+                    case "variable":
+                        String lang;
+                        if (!holder.hasNext()) {
+                            lang = "dummy";
+                        } else
+                            lang = holder.getNextWord();
+                        if (GlobalVariable.LANGUAGE_LIST.containsKey(lang)) {
+                            root = new JsonObjectNode("");
+                            Json.reconstruct(
+                                    GlobalVariable.LANGUAGES.get(lang).global_variables,
+                                    root, JsonStringNode::new
+                            );
+                            file_content = root.toString(0, 60);
+                        }
+                        break;
+                    case "helpdoc":
+                        if (!holder.hasNext()) {
+                            lang = "dummy";
+                        } else
+                            lang = holder.getNextWord();
+                        if (GlobalVariable.LANGUAGE_LIST.containsKey(lang)) {
+                            root = new JsonObjectNode("");
+                            Json.reconstruct(
+                                    GlobalVariable.LANGUAGES.get(lang).help_doc,
+                                    root, JsonStringNode::new
+                            );
+                            file_content = root.toString(0, 60);
+                        }
+                        break;
+                }
+                if (file_content == null)
+                    break;
+                debug(file_content);
+                //Main.saveFile(out_name, file_content.getBytes());
                 break;
             }
             case save:

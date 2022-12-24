@@ -8,10 +8,13 @@ import net.mamoe.mirai.event.events.BotMuteEvent;
 import net.mamoe.mirai.event.events.BotOfflineEvent;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
+import net.mamoe.mirai.event.events.NewFriendRequestEvent;
+import net.mamoe.mirai.event.events.BotInvitedJoinGroupRequestEvent;
 import net.mamoe.mirai.utils.BotConfiguration;
 
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.data.game.GameManager;
+import org.example.whzbot.storage.GlobalVariable;
 import org.example.whzbot.storage.ProfileSaveAndLoad;
 import org.example.whzbot.storage.json.JsonLoader;
 import org.example.whzbot.storage.json.JsonLongNode;
@@ -23,13 +26,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 import java.io.FileNotFoundException;
 
-import org.example.whzbot.storage.GlobalVariable;
-
 public class JavaMain {
     public static long master_qq = -1L;
     public static long bot_qq = 0L;
     public static String password = null;
-    public static final String version = "2.9.3.95";
+    public static final String version = "2.9.4.97";
     public static String working_dir = "";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -118,6 +119,30 @@ public class JavaMain {
                                 event.getOperator().getId(),
                                 event.getGroupId()
                         ))
+        );
+        bot.getEventChannel().subscribeAlways(
+                NewFriendRequestEvent.class,
+                (event) -> {
+                    event.accept();
+                    notifyMaster(
+                        event.getBot(), String.format(
+                                "new friend %d @%s",
+                                event.fromId,
+                                event.fromNick
+                        ));
+                }
+        );
+        bot.getEventChannel().subscribeAlways(
+                BotInvitedJoinGroupRequestEvent.class,
+                (event) -> {
+                    event.accept();
+                    notifyMaster(
+                        event.getBot(), String.format(
+                                "new group %d ->%s",
+                                event.invitorId,
+                                event.String
+                        ));
+                }
         );
     }
 

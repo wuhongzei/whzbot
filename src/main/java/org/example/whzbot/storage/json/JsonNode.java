@@ -54,6 +54,19 @@ public class JsonNode {
         return String.format("\"%s\"", this.name);
     }
 
+    /**
+     * Output well formatted string of this json object.
+     *
+     * @param lvl        level of indent, size of indent is default to 4
+     * @param line_width max length of each line, try to limit line width.
+     * @return well-formatted string of this json object.
+     * @implNote return start directly from content,
+     * without name and first line indent; also end without newline.
+     */
+    public String toString(int lvl, int line_width) {
+        return "";
+    }
+
     public void flatten(Map<String, String> map, String path) {
         if (this.name.isEmpty() || path.isEmpty())
             map.put(path + this.name, "");

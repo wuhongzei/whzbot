@@ -187,7 +187,7 @@ public class JsonLoader {
         System.err.printf("Missing comma before %d, line %d at file \"%s\"\n",
                 this.index,
                 StringHelper.count(this.str, '\n', 0, this.index),
-                this.file.getPath()
+                this.file == null ? "temp" : this.file.getPath()
         );
     }
 
@@ -195,7 +195,7 @@ public class JsonLoader {
         System.err.printf("extra comma at %d, line %d at file \"%s\"\n",
                 this.index,
                 StringHelper.count(this.str, '\n', 0, this.index),
-                this.file.getPath()
+                this.file == null ? "temp" : this.file.getPath()
         );
     }
 }

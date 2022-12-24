@@ -2,6 +2,7 @@ package org.example.whzbot.storage.json;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -172,7 +173,7 @@ public class JsonListNode extends JsonNode implements List<JsonNode> {
         StringBuilder builder = new StringBuilder("[");
         int i = this.content.size();
         for (JsonNode item : this.content) {
-            if (item instanceof JsonStringNode)
+            if (item instanceof JsonStringNode && !(item instanceof JsonLongNode))
                 builder.append("\"").
                         append(item.getContent()).
                         append("\"");
@@ -190,13 +191,68 @@ public class JsonListNode extends JsonNode implements List<JsonNode> {
         StringBuilder builder = new StringBuilder(String.format("\"%s\":[", this.name));
         int i = this.content.size();
         for (JsonNode item : this.content) {
-            builder.append(item.getContent());
+            if (item instanceof JsonStringNode && !(item instanceof JsonLongNode))
+                builder.append(item.toString(0, 0));
+            else
+                builder.append(item.getContent());
             i--;
             if (i != 0)
                 builder.append(",");
         }
         builder.append("]");
         return builder.toString();
+    }
+
+    public String toString(int lvl, int line_width) {
+        StringBuilder rtn = new StringBuilder("[");
+        String indent = "\t".repeat(lvl);
+        String tail = String.format("\n%s]", indent);
+
+        indent = "\t".repeat(lvl + 1);
+        int i = this.content.size();
+        int l = indent.length(); // trace used line width.
+        List<String> temps = new ArrayList<>();
+        int l2 = 0;
+        String temp;
+        for (JsonNode node : this.content) {
+            temp = node.toString(lvl + 1, 0x7FFFFFFF);
+            temps.add(temp);
+            l2 += temp.length();
+            if (l + temp.length() < line_width) {
+                if (i == this.content.size()) {
+                    rtn.append("\n");
+                    rtn.append(indent);
+                }
+                l += temp.length();
+            } else {
+                if (node instanceof JsonStringNode) {
+                    rtn.append("\n");
+                    rtn.append(indent);
+                    l = indent.length();
+                }
+                temp = node.toString(lvl + 1, line_width);
+                l += temp.length() - temp.lastIndexOf("\n");
+            }
+            rtn.append(temp);
+            i--;
+            if (i != 0) {
+                rtn.append(", ");
+                l += 2;
+            }
+        }
+        if (l2 < line_width) {
+            rtn = new StringBuilder("[");
+            if (!temps.isEmpty())
+                rtn.append(temps.get(0));
+            for (int it = 1; it < temps.size(); it++) {
+                rtn.append(", ");
+                rtn.append(temps.get(it));
+            }
+            rtn.append("]");
+            return rtn.toString();
+        }
+        rtn.append(tail);
+        return rtn.toString();
     }
 
     public void flatten(Map<String, String> map, String path) {

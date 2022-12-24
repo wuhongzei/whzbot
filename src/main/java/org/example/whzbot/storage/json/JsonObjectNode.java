@@ -1,9 +1,11 @@
 package org.example.whzbot.storage.json;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -117,6 +119,75 @@ public class JsonObjectNode extends JsonNode implements Collection<JsonNode> {
                 rtn.append(",");
         }
         rtn.append("}");
+        return rtn.toString();
+    }
+
+    public String toString(int lvl, int line_width) {
+        if (this.isEmpty())
+            return "{}";
+        StringBuilder rtn = new StringBuilder("{");
+        String tail = String.format("\n%s}", "\t".repeat(lvl));
+        String indent = "\t".repeat(lvl + 1);
+
+        int i = this.content.size();
+        int l = indent.length(); // trace used line width.
+        String temp;
+        List<String> temps = new ArrayList<>();
+        int l2 = 0;
+        for (JsonNode node : this.content) {
+            temp = node.toString(lvl + 1, 0x7FFFFFFF);
+            if (l2 < line_width) {
+                temps.add(String.format("\"%s\": %s", node.getName(), temp));
+                l2 += node.getName().length() + temp.length() + 4;
+            }
+            String node_name = String.format("\"%s\": ", node.getName());
+            if (l + temp.length() + node.getName().length() < line_width) {
+                if (i == this.content.size()) {
+                    rtn.append("\n");
+                    rtn.append(indent);
+                }
+                rtn.append(node_name);
+                l += temp.length() + node.getName().length() + 5;
+            } else {
+                temp = node.toString(lvl + 1, line_width);
+                if (node instanceof JsonStringNode) {
+                    rtn.append("\n");
+                    rtn.append(indent);
+                    rtn.append(node_name);
+                    l = indent.length() + node.getName().length() + 4;
+                } else {
+                    if (l + node.getName().length() + 6 >= line_width) {
+                        rtn.append("\n");
+                        rtn.append(indent);
+                        rtn.append(node_name);
+                        l = indent.length();
+                    } else {
+                        if (i == this.content.size()) {
+                            rtn.append("\n");
+                            rtn.append(indent);
+                        }
+                        rtn.append(node_name);
+                    }
+                }
+                l += temp.length() - temp.lastIndexOf("\n");
+            }
+            rtn.append(temp);
+            i--;
+            if (i != 0)
+                rtn.append(", ");
+            l += temp.length() + temp.lastIndexOf('\n');
+        }
+        if (l2 < line_width) {
+            rtn = new StringBuilder("{");
+            rtn.append(temps.get(0));
+            for (int it = 1; it < temps.size(); it++) {
+                rtn.append(", ");
+                rtn.append(temps.get(it));
+            }
+            rtn.append("}");
+            return rtn.toString();
+        }
+        rtn.append(tail);
         return rtn.toString();
     }
 

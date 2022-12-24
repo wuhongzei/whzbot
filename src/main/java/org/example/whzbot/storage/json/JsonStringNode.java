@@ -7,7 +7,7 @@ public class JsonStringNode extends JsonNode {
     protected String content;
 
     public JsonStringNode(String name) {
-        super(name);
+        this(name, name);
     }
 
     public JsonStringNode(String name, String content) {
@@ -21,6 +21,10 @@ public class JsonStringNode extends JsonNode {
 
     public String toString() {
         return String.format("\"%s\":\"%s\"", this.name, this.content);
+    }
+
+    public String toString(int lvl, int line_width) {
+        return String.format("\"%s\"", this.content);
     }
 
     public void flatten(Map<String, String> map, String path) {

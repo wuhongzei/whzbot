@@ -7,6 +7,7 @@ public enum Command {
     exec(CommandType.GENERAL, Permission.ANYONE, "exec"),
     send(CommandType.GENERAL, Permission.ANY_ADMIN, "send"),
     lang(CommandType.GENERAL, Permission.ANYONE, "lang"),
+    none(CommandType.GENERAL, Permission.ANYONE, "none"),
 
     stat(CommandType.ADMIN, Permission.BOT_ADMIN, "stat"),
     admin(CommandType.ADMIN, Permission.BOT_ADMIN, "admin"),
@@ -22,6 +23,7 @@ public enum Command {
     white_list(CommandType.ADMIN, Permission.BOT_ADMIN, "white"),
     reload(CommandType.ADMIN, Permission.BOT_ADMIN, "reload"),
     update(CommandType.ADMIN, Permission.BOT_OWNER, "update"),
+    output(CommandType.ADMIN, Permission.BOT_OWNER, "output"),
     version(CommandType.ADMIN, Permission.ANYONE, "version"),
 
     me_on(CommandType.GROUP, Permission.ANY_ADMIN, "meon"),
