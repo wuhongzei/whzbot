@@ -49,13 +49,13 @@ public class JavaMain {
         if (args.length > 2) {
             switch (args[2]) {
                 case "phone":
-                    MiraiProtocol.ANDROID_PHONE;
+                    protocol = MiraiProtocol.ANDROID_PHONE;
                     break;
                 case "pad":
-                    MiraiProtocol.ANDROID_PAD;
+                    protocol = MiraiProtocol.ANDROID_PAD;
                     break;
                 case "ipad":
-                    MiraiProtocol.IPAD;
+                    protocol = MiraiProtocol.IPAD;
                     break;
                 //IPAD, ANDROID_PAD, ANDROID_PHONE
             }
