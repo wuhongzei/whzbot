@@ -11,6 +11,7 @@ import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.NewFriendRequestEvent;
 import net.mamoe.mirai.event.events.BotInvitedJoinGroupRequestEvent;
 import net.mamoe.mirai.utils.BotConfiguration;
+import net.mamoe.mirai.utils.BotConfiguration.MiraiProtocol;
 
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.data.game.GameManager;
@@ -30,7 +31,7 @@ public class JavaMain {
     public static long master_qq = -1L;
     public static long bot_qq = 0L;
     public static String password = null;
-    public static final String version = "2.9.4.97";
+    public static final String version = "2.9.5.98";
     public static String working_dir = "";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -44,6 +45,21 @@ public class JavaMain {
             System.out.println(args[1]);
             setting_path = args[1];
         }
+        MiraiProtocol protocol = MiraiProtocol.ANDROID_PAD;
+        if (args.length > 2) {
+            switch (args[2]) {
+                case "phone":
+                    MiraiProtocol.ANDROID_PHONE;
+                    break;
+                case "pad":
+                    MiraiProtocol.ANDROID_PAD;
+                    break;
+                case "ipad":
+                    MiraiProtocol.IPAD;
+                    break;
+                //IPAD, ANDROID_PAD, ANDROID_PHONE
+            }
+        }
         if (!loadSetting(setting_path)) {
             System.err.println("Setting Incomplete");
             return;
@@ -55,7 +71,7 @@ public class JavaMain {
                 new BotConfiguration() {{
                     fileBasedDeviceInfo();
                     setWorkingDir(new File(working_dir));
-                    setProtocol(MiraiProtocol.ANDROID_PAD);
+                    setProtocol(protocol); //IPAD, ANDROID_PAD, ANDROID_PHONE
                 }}
         );
         bot.login();
@@ -127,8 +143,8 @@ public class JavaMain {
                     notifyMaster(
                         event.getBot(), String.format(
                                 "new friend %d @%s",
-                                event.fromId,
-                                event.fromNick
+                                event.getFromId(),
+                                event.getFromNick()
                         ));
                 }
         );
@@ -139,8 +155,8 @@ public class JavaMain {
                     notifyMaster(
                         event.getBot(), String.format(
                                 "new group %d ->%s",
-                                event.invitorId,
-                                event.String
+                                event.getInvitorId(),
+                                event.getGroupName()
                         ));
                 }
         );
