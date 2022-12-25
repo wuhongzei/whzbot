@@ -153,6 +153,8 @@ public abstract class MsgProcessorBase {
 
     public void replyImage(String image_id) {
         this.event.getSubject().sendMessage(Image.fromId(image_id));
+        //contact.uploadImage(resource); // 用来上传图片
+
     }
 
     public void debug(String str) {
@@ -1035,7 +1037,7 @@ public abstract class MsgProcessorBase {
                                 break;
                             }
                             if (temp instanceof JsonListNode)
-                                GlobalVariable.updateCardDeck(path, (JsonListNode)temp);
+                                GlobalVariable.updateCardDeck(path, (JsonListNode) temp);
                             else {
                                 reply("expect json list");
                                 break;
@@ -1065,14 +1067,14 @@ public abstract class MsgProcessorBase {
                 }
                 String out_name = holder.getNextArg();
                 String file_content = null;
-                switch(inner_path) {
+                switch (inner_path) {
                     case "carddeck":
                         JsonObjectNode root = new JsonObjectNode("");
                         Json.reconstruct(
                                 GlobalVariable.CARD_DECK, root,
                                 (String[] ss) -> {
                                     JsonListNode node = new JsonListNode();
-                                    for (String s: ss){
+                                    for (String s : ss) {
                                         node.add(new JsonStringNode(s));
                                     }
                                     return node;
@@ -1115,6 +1117,11 @@ public abstract class MsgProcessorBase {
                     break;
                 debug(file_content);
                 //Main.saveFile(out_name, file_content.getBytes());
+                if (this instanceof GroupMsgProcessor) {
+                    ((GroupMsgProcessor)this).sendFile(
+                            out_name, file_content.getBytes()
+                    );
+                }
                 break;
             }
             case save:

@@ -65,13 +65,14 @@ public class JavaMain {
             return;
         }
 
+        MiraiProtocol finalProtocol = protocol;
         Bot bot = BotFactory.INSTANCE.newBot(
                 bot_qq,
                 password,
                 new BotConfiguration() {{
                     fileBasedDeviceInfo();
                     setWorkingDir(new File(working_dir));
-                    setProtocol(protocol); //IPAD, ANDROID_PAD, ANDROID_PHONE
+                    setProtocol(finalProtocol); //IPAD, ANDROID_PAD, ANDROID_PHONE
                 }}
         );
         bot.login();
