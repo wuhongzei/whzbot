@@ -1,9 +1,6 @@
 package org.example.whzbot;
 
-import net.mamoe.mirai.contact.FileSupported;
 import net.mamoe.mirai.contact.Group;
-import net.mamoe.mirai.contact.file.AbsoluteFolder;
-import net.mamoe.mirai.contact.file.RemoteFiles;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.PlainText;
@@ -15,7 +12,6 @@ import org.example.whzbot.command.Permission;
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.helper.StringHelper;
 import org.example.whzbot.helper.TranslateHelper;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,21 +35,8 @@ public class GroupMsgProcessor extends MsgProcessorBase {
         try (InputStream stream = new ByteArrayInputStream(file_content)) { // 安全地使用 InputStream
             net.mamoe.mirai.contact.Group contact = (Group) this.event.getSubject();
             ExternalResource resource = ExternalResource.create(stream);
-            RemoteFiles files = new RemoteFiles() {
-                @NotNull
-                @Override
-                public AbsoluteFolder getRoot() {
-                    return null;
-                }
-
-                @NotNull
-                @Override
-                public FileSupported getContact() {
-                    return contact;
-                }
-            };
-            files.uploadNewFile(file_name, resource);
-            //contact.files.uploadNewFile(file_name, resource); // 或者用来上传文件
+            contact.getFiles().uploadNewFile(file_name, resource);
+            //contact.getFiles().uploadNewFile(file_name, resource); // 或者用来上传文件
         } catch (IOException ignored) {}
     }
 

@@ -60,6 +60,29 @@ public class HttpHelper {
         return -1;
     }
 
+    public static byte[] httpToFile(String url) {
+        // uri [scheme:][//authority][path][?query][#fragment]
+        HttpClient client = HttpClient.newBuilder().build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .build();
+        try {
+            HttpResponse<byte[]> response = client.send(
+                    request,
+                    HttpResponse.BodyHandlers.ofByteArray()
+            );
+
+            int code = response.statusCode();
+
+            if (code != 200)
+                System.out.println(code);
+
+            return response.body();
+        } catch (IOException | InterruptedException e) {
+            return e.toString().getBytes();
+        }
+    }
+
     public static String ascii2d(String url) {
         HttpClient client = HttpClient.newBuilder()
                 .followRedirects(HttpClient.Redirect.NORMAL)

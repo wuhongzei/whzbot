@@ -130,10 +130,11 @@ public class JsonObjectNode extends JsonNode implements Collection<JsonNode> {
         String indent = "\t".repeat(lvl + 1);
 
         int i = this.content.size();
-        int l = indent.length(); // trace used line width.
+        int indent_len = indent.length() * 4;
+        int l = indent_len; // trace used line width.
         String temp;
         List<String> temps = new ArrayList<>();
-        int l2 = 0;
+        int l2 = l;
         for (JsonNode node : this.content) {
             temp = node.toString(lvl + 1, 0x7FFFFFFF);
             if (l2 < line_width) {
@@ -141,28 +142,30 @@ public class JsonObjectNode extends JsonNode implements Collection<JsonNode> {
                 l2 += node.getName().length() + temp.length() + 4;
             }
             String node_name = String.format("\"%s\": ", node.getName());
-            if (l + temp.length() + node.getName().length() < line_width) {
+            if (l + temp.length() + node.getName().length() + 6 < line_width) {
                 if (i == this.content.size()) {
                     rtn.append("\n");
                     rtn.append(indent);
                 }
                 rtn.append(node_name);
-                l += temp.length() + node.getName().length() + 5;
+                l += temp.length() + node.getName().length() + 6;
             } else {
                 temp = node.toString(lvl + 1, line_width);
                 if (node instanceof JsonStringNode) {
                     rtn.append("\n");
                     rtn.append(indent);
                     rtn.append(node_name);
-                    l = indent.length() + node.getName().length() + 4;
+                    l = indent_len + node.getName().length() + 4;
                 } else {
                     if (l + node.getName().length() + 6 >= line_width) {
                         rtn.append("\n");
                         rtn.append(indent);
                         rtn.append(node_name);
-                        l = indent.length();
+                        l = indent_len;
                     } else {
-                        if (i == this.content.size()) {
+                        if (i == this.content.size() ||
+                                indent_len + temp.length() + node_name.length() >=
+                                        line_width) {
                             rtn.append("\n");
                             rtn.append(indent);
                         }
@@ -175,7 +178,7 @@ public class JsonObjectNode extends JsonNode implements Collection<JsonNode> {
             i--;
             if (i != 0)
                 rtn.append(", ");
-            l += temp.length() + temp.lastIndexOf('\n');
+            //l += temp.length() + temp.lastIndexOf('\n');
         }
         if (l2 < line_width) {
             rtn = new StringBuilder("{");

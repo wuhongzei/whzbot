@@ -1,6 +1,14 @@
 package org.example.whzbot.storage;
 
+import net.mamoe.mirai.utils.MiraiLogger;
+
+import org.example.whzbot.helper.StringHelper;
+import org.example.whzbot.storage.json.JsonLoader;
+import org.example.whzbot.storage.json.JsonNode;
+import org.example.whzbot.storage.json.JsonObjectNode;
+
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -10,14 +18,8 @@ import java.nio.ByteBuffer;
 import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-
-import net.mamoe.mirai.utils.MiraiLogger;
-
-import org.example.whzbot.helper.StringHelper;
-import org.example.whzbot.storage.json.JsonLoader;
-import org.example.whzbot.storage.json.JsonNode;
-import org.example.whzbot.storage.json.JsonObjectNode;
 
 public class ProfileSaveAndLoad {
     public static MiraiLogger logger;
@@ -164,6 +166,44 @@ public class ProfileSaveAndLoad {
             }
         }
 
+        return charset;
+    }
+
+    public static Charset detectCharset(byte[] stream) {
+        Charset charset = null;
+
+        for (String charsetName : charsets) {
+            try {
+                BufferedInputStream input = new BufferedInputStream(
+                        new ByteArrayInputStream(stream)
+                );
+                charset = Charset.forName(charsetName);
+                CharsetDecoder decoder = charset.newDecoder();
+                decoder.reset();
+
+                byte[] buffer = new byte[32768];
+                boolean identified = false;
+                while ((input.read(buffer) != -1) && (!identified)) {
+                    try {
+                        decoder.decode(ByteBuffer.wrap(buffer));
+                        identified = true;
+                    } catch (CharacterCodingException ignored) {
+                    }
+                }
+                input.close();
+
+                if (!identified) {
+                    charset = null;
+                }
+            } catch (Exception e) {
+                return StandardCharsets.UTF_16;
+            }
+            if (charset != null) {
+                break;
+            }
+        }
+
+        log(charset.displayName());
         return charset;
     }
 

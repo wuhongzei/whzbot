@@ -98,6 +98,8 @@ public enum Command {
     image_save(CommandType.WEB, Permission.BOT_ADMIN, "imgs"),
     http(CommandType.WEB, Permission.ANYONE, "http"),
     game(CommandType.WEB, Permission.ANYONE, "game"),
+    web_save(CommandType.WEB, Permission.ANYONE, "webs"),
+    genshin_stats(CommandType.WEB, Permission.ANYONE, "ysst"),
 
     unknown(CommandType.GENERAL, "unknown");
 

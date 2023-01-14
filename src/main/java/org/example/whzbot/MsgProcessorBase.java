@@ -13,6 +13,7 @@ import net.mamoe.mirai.message.data.LightApp;
 import net.mamoe.mirai.message.data.PlainText;
 import net.mamoe.mirai.message.data.RawForwardMessage;
 import net.mamoe.mirai.message.data.SingleMessage;
+import net.mamoe.mirai.utils.ExternalResource;
 
 import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHelper;
@@ -31,6 +32,7 @@ import org.example.whzbot.helper.RandomHelper;
 import org.example.whzbot.helper.TranslateHelper;
 import org.example.whzbot.storage.GlobalVariable;
 import org.example.whzbot.storage.Language;
+import org.example.whzbot.storage.ProfileSaveAndLoad;
 import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonListNode;
 import org.example.whzbot.storage.json.JsonLoader;
@@ -39,6 +41,10 @@ import org.example.whzbot.storage.json.JsonObjectNode;
 import org.example.whzbot.storage.json.JsonStringNode;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.example.whzbot.JavaMain.storing_dir;
@@ -155,6 +161,21 @@ public abstract class MsgProcessorBase {
         this.event.getSubject().sendMessage(Image.fromId(image_id));
         //contact.uploadImage(resource); // 用来上传图片
 
+    }
+
+    public void replyImage(byte[] image_content) {
+        try (InputStream stream = new ByteArrayInputStream(image_content)) { // 安全地使用 InputStream
+            net.mamoe.mirai.contact.Contact contact = this.event.getSubject();
+            ExternalResource resource = ExternalResource.create(stream);
+            contact.uploadImage(resource); //用来上传文件
+        } catch (IOException ignored) {}
+    }
+
+    public void sendFile(String file_name, byte[] file_content) {
+        reply(String.format(
+                "Failed to send \"%s\" here, file length %d",
+                file_name, file_content.length)
+        );
     }
 
     public void debug(String str) {
@@ -663,7 +684,7 @@ public abstract class MsgProcessorBase {
                                 "deck.err.deck_not_found", 1
                         ).translate(lang_name));
                     } else {
-                        reply(new TranslateHelper(
+                        replyZipped(new TranslateHelper(
                                 "deck.show",
                                 new TranslateHelper[]{
                                         new TranslateHelper(),
@@ -675,7 +696,7 @@ public abstract class MsgProcessorBase {
                                         )
                                 },
                                 1
-                        ).translate(lang_name));
+                        ), ",", 200);
                     }
                 } else {
                     replyZipped(new TranslateHelper(
@@ -690,18 +711,6 @@ public abstract class MsgProcessorBase {
                             },
                             1
                     ), ",", 200);
-                    /*reply(new TranslateHelper(
-                            "deck.list",
-                            new TranslateHelper[]{
-                                    new TranslateHelper(),
-                                    new TranslateHelper(
-                                            ", ",
-                                            GlobalVariable.CARD_DECK.keySet().toArray(new String[0]),
-                                            4
-                                    )
-                            },
-                            1
-                    ).translate(lang_name));*/
                 }
                 break;
             }
@@ -812,6 +821,67 @@ public abstract class MsgProcessorBase {
                 );
                 reply(Integer.toString(code));
                 reply(url);
+                break;
+            }
+            case web_save: {
+                // http://owlcraft.cn/files/store/temp.json
+                // characters.json; costumes.json; loc.json; namecards.json
+                // https://enka.network/u/100084078/__data.json
+
+                if (!holder.hasNext()) {
+                    reply("err no_arg");
+                    break;
+                }
+                String file_type = holder.getNextArg();
+                if (!holder.hasNext()) {
+                    reply("err no_arg");
+                    break;
+                }
+                String url = holder.getNextArg();
+                byte[] content = HttpHelper.httpToFile(url);
+                reply(new String(content));
+                switch (file_type) {
+                    case "json":
+                        String json_str = new String(content,
+                                ProfileSaveAndLoad.detectCharset(content)
+                        );
+                        JsonNode node = new JsonLoader(json_str, "").load();
+                        this.sendFile(
+                                "temp.json",
+                                node.toString(0, 60).getBytes(StandardCharsets.UTF_8)
+                        );
+                        break;
+                    case "txt":
+                    case "text":
+                        this.sendFile(
+                                "temp_text.txt",
+                                content
+                        );
+                        break;
+                    case "img":
+                    case "image":
+                        replyImage(content);
+                        break;
+                }
+                break;
+            }
+            case genshin_stats: {
+                int uid = user.getCharacter().getSkill("ys");
+                if (uid < 100000000) {
+                    reply("ys.uid_err");
+                    break;
+                }
+                String url = String.format("https://enka.network/u/%d/__data.json", uid);
+                reply("ys.getting_and_wait");
+                byte[] content = HttpHelper.httpToFile(url);
+                String json_str = new String(content,
+                        ProfileSaveAndLoad.detectCharset(content)
+                );
+                JsonNode node = new JsonLoader(json_str, "").load();
+                this.sendFile(
+                        "temp.json",
+                        node.toString(0, 60).getBytes(StandardCharsets.UTF_8)
+                );
                 break;
             }
             case image: {
@@ -1115,13 +1185,9 @@ public abstract class MsgProcessorBase {
                 }
                 if (file_content == null)
                     break;
-                debug(file_content);
-                //Main.saveFile(out_name, file_content.getBytes());
-                if (this instanceof GroupMsgProcessor) {
-                    ((GroupMsgProcessor)this).sendFile(
-                            out_name, file_content.getBytes()
-                    );
-                }
+                this.sendFile(
+                        out_name, file_content.getBytes()
+                );
                 break;
             }
             case save:

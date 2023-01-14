@@ -210,28 +210,38 @@ public class JsonListNode extends JsonNode implements List<JsonNode> {
 
         indent = "\t".repeat(lvl + 1);
         int i = this.content.size();
-        int l = indent.length(); // trace used line width.
+        int indent_len = indent.length() * 4;
+        int l = indent_len; // trace used line width.
         List<String> temps = new ArrayList<>();
-        int l2 = 0;
+        int l2 = l;
         String temp;
+        boolean append_new_line = true;
         for (JsonNode node : this.content) {
             temp = node.toString(lvl + 1, 0x7FFFFFFF);
             temps.add(temp);
-            l2 += temp.length();
+            l2 += temp.length() + 2;
             if (l + temp.length() < line_width) {
                 if (i == this.content.size()) {
                     rtn.append("\n");
                     rtn.append(indent);
                 }
                 l += temp.length();
+                append_new_line = true;
             } else {
-                if (node instanceof JsonStringNode) {
+                if (append_new_line || node instanceof JsonStringNode
+                        || indent_len + temp.length() < line_width
+                ){
                     rtn.append("\n");
                     rtn.append(indent);
-                    l = indent.length();
+                    l = indent_len;
                 }
-                temp = node.toString(lvl + 1, line_width);
-                l += temp.length() - temp.lastIndexOf("\n");
+                if (l + temp.length() >= line_width)
+                    temp = node.toString(lvl + 1, line_width);
+                if (temp.lastIndexOf('\n') != -1)
+                    l += temp.length() - temp.lastIndexOf("\n");
+                else
+                    l += temp.length();
+                append_new_line = false;
             }
             rtn.append(temp);
             i--;

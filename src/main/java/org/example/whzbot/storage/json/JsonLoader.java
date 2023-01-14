@@ -96,13 +96,13 @@ public class JsonLoader {
                                     "Unenclosed quote from %d, line %d at file \"%s\"\n",
                                     this.index,
                                     StringHelper.count(this.str, '\n', 0, this.index),
-                                    this.file.getPath()
+                                    this.file == null ? "temp" : this.file.getPath()
                             );
                         } else {
                             System.err.printf("Missing content %d, line %d at file \"%s\"\n",
                                     this.index,
                                     StringHelper.count(this.str, '\n', 0, this.index),
-                                    this.file.getPath()
+                                    this.file == null ? "temp" : this.file.getPath()
                             );
                             return new JsonNode(node_name);
                         }
@@ -167,7 +167,7 @@ public class JsonLoader {
                 System.err.printf("Unenclosed content %d, line %d at file \"%s\"\n",
                         this.index,
                         StringHelper.count(this.str, '\n', 0, this.index),
-                        this.file.getPath()
+                        this.file == null ? "temp" : this.file.getPath()
                 );
                 j = this.str.length();
             }

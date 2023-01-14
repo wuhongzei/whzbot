@@ -241,7 +241,7 @@ public class CommandHelper {
         if (pick > number)
             pick = 0;
 
-        boolean abbreviate = round * dice > 64; // when false, show individual dices.
+        boolean abbreviate = round * dice * number > 256; // when false, show individual dices.
 
         String[] results = new String[round];
         String rtn;
@@ -279,11 +279,15 @@ public class CommandHelper {
             rtn = builder.toString();
 
         } else if (pick != 0) { //.r (count) d (dice) k (pick)
-            if (pick > 100)
+            if (pick > 32768)
                 return "err pick_too_many";
 
             int pick_max = pick > 0 ? 1 : -1;
             pick = pick * pick_max;
+            abbreviate = round * dice * pick > 256;
+            // if heap top reaches threshold, it indicates heap has been filled
+            // by same, maximum elements and would no longer change.
+            int threshold = pick_max > 0 ? dice : -1;
 
             Integer[] picked = new Integer[pick];
             int i;
@@ -298,9 +302,10 @@ public class CommandHelper {
                 for (; i < number; i++) {
                     d = RandomHelper.dice(dice) * pick_max;
                     if (d > heap.top()) { // update heap to keep max val;
-                        heap.extract();
-                        heap.add(d);
+                        heap.replaceTop(d);
                     }
+                    if (heap.top() == threshold) // heap filled, break;
+                        i = number;
                 }
                 picked = heap.toArray(picked); // take heap content;
                 int sum = 0;

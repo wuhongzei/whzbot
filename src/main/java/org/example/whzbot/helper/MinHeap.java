@@ -17,10 +17,8 @@ public class MinHeap<T extends Comparable<T>> implements Collection<T> {
     }
 
     private void buildHeap() {
-        for (int i = this.len - 1; i > 0; i--) {
-            if (this.array[i].compareTo(this.array[i / 2]) > 0) {
-                swap(i);
-            }
+        for (int i = (this.len - 1) / 2; i >= 0; i--) {
+            sink(i);
         }
     }
 
@@ -32,13 +30,7 @@ public class MinHeap<T extends Comparable<T>> implements Collection<T> {
         T rtn = this.array[0];
         this.len--;
         this.array[0] = this.array[this.len];
-        int i = 0;
-        int j = 1;
-        while (j < this.len && this.array[i].compareTo(this.array[j]) < 0) {
-            this.swap(j);
-            i = j;
-            j = i * 2 + 1;
-        }
+        sink(0);
         return rtn;
     }
 
@@ -46,10 +38,44 @@ public class MinHeap<T extends Comparable<T>> implements Collection<T> {
         return this.array[0];
     }
 
+    public T replaceTop(T new_top) {
+        T rtn = this.array[0];
+        this.array[0] = new_top;
+        this.sink(0);
+        return rtn;
+    }
+
+    /**
+     * Swap a node with its parent node.
+     * @param i index of child node.
+     */
     private void swap(int i) {
         T temp = this.array[i];
-        this.array[i] = this.array[i / 2];
-        this.array[i / 2] = temp;
+        int j = (i - 1) / 2;
+        this.array[i] = this.array[j];
+        this.array[j] = temp;
+    }
+
+    /**
+     * sink a node down to where it should be.
+     * @param i index of start node.
+     */
+    private void sink(int i) {
+        int j = i * 2 + 1;
+        while (j < this.len) {
+            if (this.array[i].compareTo(this.array[j]) > 0) {
+                if (j + 1 < this.len &&
+                        this.array[j].compareTo(this.array[j + 1]) > 0)
+                    j++;
+            } else if (j + 1 < this.len &&
+                    this.array[i].compareTo(this.array[j + 1]) > 0)
+                j++;
+            else
+                break;
+            this.swap(j);
+            i = j;
+            j = i * 2 + 1;
+        }
     }
 
     @Override
@@ -95,9 +121,11 @@ public class MinHeap<T extends Comparable<T>> implements Collection<T> {
         this.array[len] = t;
         int i = this.len;
         this.len++;
-        while (i > 0 && this.array[i].compareTo(this.array[i / 2]) < 0) {
+        int j = (i - 1) / 2;
+        while (j > 0 && this.array[i].compareTo(this.array[j]) < 0) {
             this.swap(i);
-            i = i / 2;
+            j = i;
+            i = (i - 1) / 2;
         }
 
         return true;
