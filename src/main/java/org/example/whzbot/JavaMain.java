@@ -3,18 +3,20 @@ package org.example.whzbot;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.BotFactory;
 import net.mamoe.mirai.contact.Friend;
+import net.mamoe.mirai.event.events.BotInvitedJoinGroupRequestEvent;
 import net.mamoe.mirai.event.events.BotLeaveEvent;
 import net.mamoe.mirai.event.events.BotMuteEvent;
 import net.mamoe.mirai.event.events.BotOfflineEvent;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.NewFriendRequestEvent;
-import net.mamoe.mirai.event.events.BotInvitedJoinGroupRequestEvent;
 import net.mamoe.mirai.utils.BotConfiguration;
 import net.mamoe.mirai.utils.BotConfiguration.MiraiProtocol;
 
+import org.example.whzbot.command.CommandHelper2;
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.data.game.GameManager;
+import org.example.whzbot.data.variable.Memory;
 import org.example.whzbot.storage.GlobalVariable;
 import org.example.whzbot.storage.ProfileSaveAndLoad;
 import org.example.whzbot.storage.json.JsonLoader;
@@ -31,7 +33,7 @@ public class JavaMain {
     public static long master_qq = -1L;
     public static long bot_qq = 0L;
     public static String password = null;
-    public static final String version = "2.10.0.100";
+    public static final String version = "2.10.1.101";
     public static String working_dir = "";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -100,6 +102,8 @@ public class JavaMain {
         loadCardDeck();
         loadDefaultSetting();
         GameManager.init(bot);
+        Memory.initGlobal();
+        CommandHelper2.msg_wrapper = MsgProcessorShort::wrapperEntry;
 
         bot.getEventChannel().subscribeAlways(
                 FriendMessageEvent.class,

@@ -1,5 +1,7 @@
 package org.example.whzbot.storage.json;
 
+import org.example.whzbot.helper.StringHelper;
+
 import java.util.Map;
 import java.util.function.Function;
 
@@ -14,6 +16,13 @@ public class JsonStringNode extends JsonNode {
         super(name);
         this.content = content;
     }
+    public JsonStringNode(String name, String content, boolean sanitized) {
+        super(name);
+        if (sanitized)
+            this.content = StringHelper.enSenString_(content);
+        else
+            this.content = content;
+    }
 
     public String getContent() {
         return this.content;
@@ -24,7 +33,7 @@ public class JsonStringNode extends JsonNode {
     }
 
     public String toString(int lvl, int line_width) {
-        return String.format("\"%s\"", this.content);
+        return String.format("\"%s\"", StringHelper.deSenString_(this.content));
     }
 
     public void flatten(Map<String, String> map, String path) {

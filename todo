@@ -32,3 +32,4 @@ f=feature,b=bug,u=update,m=modify
 15.4 b roll.err.round_too_big text not set.
 15.5 b dice sum may overflow to neg.
 16 f merge user/character fields into stats/variable memory.
+17 f timed command.

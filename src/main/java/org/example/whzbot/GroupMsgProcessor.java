@@ -37,6 +37,7 @@ public class GroupMsgProcessor extends MsgProcessorBase {
             ExternalResource resource = ExternalResource.create(stream);
             contact.getFiles().uploadNewFile(file_name, resource);
             //contact.getFiles().uploadNewFile(file_name, resource); // 或者用来上传文件
+            resource.close();
         } catch (IOException ignored) {}
     }
 

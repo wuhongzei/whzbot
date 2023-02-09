@@ -17,6 +17,7 @@ import net.mamoe.mirai.utils.ExternalResource;
 
 import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHelper;
+import org.example.whzbot.command.CommandHelper2;
 import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.command.CommandType;
 import org.example.whzbot.command.Permission;
@@ -24,6 +25,7 @@ import org.example.whzbot.data.Character;
 import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.Pool;
 import org.example.whzbot.data.game.GameManager;
+import org.example.whzbot.data.result.Result;
 import org.example.whzbot.helper.CardDeckHelper;
 import org.example.whzbot.helper.DiceHelper;
 import org.example.whzbot.helper.HttpHelper;
@@ -99,6 +101,15 @@ public abstract class MsgProcessorBase {
         ).translate(user.getLang()));
     }
 
+    public void replyTranslated(String str, String[] vars) {
+        vars[0] = user.getNickName();
+        reply(new TranslateHelper(
+                str,
+                vars,
+                1
+        ).translate(user.getLang()));
+    }
+
     /**
      * Zip reply into forward message.
      * e.g ab, cd, ef -> ab\rcd\ref
@@ -129,6 +140,7 @@ public abstract class MsgProcessorBase {
             }
         });
         int i = 0, j;
+        int c = 0;
         String partition;
 
         while (i + max_line < rpy.length()) {
@@ -141,6 +153,17 @@ public abstract class MsgProcessorBase {
             partition = rpy.substring(i, j);
             i = j + split.length();
             builder.add(bot, new PlainText(partition));
+            c++;
+            if (c > 98) {
+                debug(builder.toString());
+                this.event.getSubject().sendMessage(builder.build());
+                builder.clear();
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         if (i < rpy.length() - 1)
             builder.add(bot, new PlainText(rpy.substring(i)));
@@ -167,7 +190,10 @@ public abstract class MsgProcessorBase {
         try (InputStream stream = new ByteArrayInputStream(image_content)) { // 安全地使用 InputStream
             net.mamoe.mirai.contact.Contact contact = this.event.getSubject();
             ExternalResource resource = ExternalResource.create(stream);
-            contact.uploadImage(resource); //用来上传文件
+            Image img = contact.uploadImage(resource); //用来上传图片, failed
+            //Image img = ExternalResource.uploadAsImage(stream, contact); //failed
+            contact.sendMessage(img);
+            resource.close();
         } catch (IOException ignored) {}
     }
 
@@ -248,8 +274,15 @@ public abstract class MsgProcessorBase {
                         reply(str_node.getContent().replaceAll("\\\\/", "/"));
                 } else
                     reply(str_node.getContent().replaceAll("\\\\/", "/"));
+                if (this.permission == Permission.BOT_OWNER) {
+                    String j = node.toString(0, 64);
+                    if (j.length() < 1000)
+                        reply(j);
+                    else
+                        replyZipped(new TranslateHelper(j, 0), "\n", 100);
+                }
             }
-            this.debug(((LightApp) msg).getContent());
+            //this.debug(((LightApp) msg).getContent());
         }
     }
 
@@ -376,7 +409,7 @@ public abstract class MsgProcessorBase {
                         cutoff = Integer.parseInt(holder.getNextInt());
                         has_cutoff = true;
                     } else {
-                        cutoff = user.getCharacter().getSkill(skill_name);
+                        cutoff = (int) user.getCharacter().getSkill(skill_name);
                         has_cutoff = cutoff != -1;
                     }
                 }
@@ -425,7 +458,7 @@ public abstract class MsgProcessorBase {
             case roll:
                 result = CommandHelper.roll_dice(user, holder).split(" ", 2);
                 if (result[0].equals("err")) {
-                    reply("roll.err." + result[1]);
+                    replyTranslated("roll.err." + result[1]);
                 } else if (holder.hasNext()) {
                     reply(new TranslateHelper(
                             "roll.reply_reason",
@@ -803,6 +836,21 @@ public abstract class MsgProcessorBase {
                 reply(prob + " " + x);
                 break;
             }
+            case variable: {
+                Result r = CommandHelper2.commandVariable(user, holder);
+                replyTranslated(r.get(), r.gets());
+                break;
+            }
+            case function: {
+            } {
+                Result r = CommandHelper2.commandFunction(user, holder);
+                if (r. isSuccess()) {
+                    reply(r.get());
+                } else {
+                    replyTranslated(r.get(), r.gets());
+                }
+                break;
+            }
             case http: {
                 if (!holder.hasNext()) {
                     reply("err no_arg");
@@ -865,8 +913,8 @@ public abstract class MsgProcessorBase {
                 }
                 break;
             }
-            case genshin_stats: {
-                int uid = user.getCharacter().getSkill("ys");
+            case ys_stats: {
+                long uid = user.getCharacter().getSkill("ys");
                 if (uid < 100000000) {
                     reply("ys.uid_err");
                     break;

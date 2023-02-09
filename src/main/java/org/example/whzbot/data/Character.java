@@ -1,5 +1,9 @@
 package org.example.whzbot.data;
 
+import org.example.whzbot.data.variable.IVariable;
+import org.example.whzbot.data.variable.Memory;
+import org.example.whzbot.data.variable.StaticType;
+import org.example.whzbot.data.variable.instance.IntVar;
 import org.example.whzbot.storage.json.Json;
 import org.example.whzbot.storage.json.JsonBooleanNode;
 import org.example.whzbot.storage.json.JsonLongNode;
@@ -15,8 +19,10 @@ public class Character {
 
     String name;
     String nick_name = null;
-    HashMap<String, Integer> skills = new HashMap<>();
+    //HashMap<String, Integer> skills = new HashMap<>();
     HashMap<String, Integer> gacha = new HashMap<>();
+    Memory attribute_memory;
+    Memory memory;
     String image_path = null;
     String rule = null;
     boolean used = true;
@@ -24,18 +30,15 @@ public class Character {
     UUID uuid;
 
     public Character() {
-        name = "";
-        this.uuid = randomUUID();
-    }
-
-    public Character(String name) {
-        this.name = name;
-        this.uuid = randomUUID();
+        this(randomUUID());
     }
 
     public Character(UUID uuid) {
         this.name = "";
         this.uuid = uuid;
+        this.attribute_memory = new Memory("attr");
+        this.memory = new Memory(uuid.toString());
+        this.memory.setUpper(Memory.global);
     }
 
     public void setUsed(boolean b) {
@@ -47,29 +50,45 @@ public class Character {
         return this.used;
     }
 
-    public int setSkill(String skill_name, int value) {
-        Integer i = this.skills.put(skill_name, value);
+    public long setSkill(String skill_name, long value) {
+        IntVar sk = (IntVar) attribute_memory.get(skill_name, StaticType.integer_type);
+        long old;
+        if (sk == null) {
+            old = -1;
+            sk = new IntVar(skill_name);
+        } else {
+            old = sk.read();
+        }
+        sk.assign(value);
+        //Integer i = this.skills.put(skill_name, value);
+        attribute_memory.put(sk);
         this.modified = true;
-        return i == null ? -1 : i;
+        return old;
     }
 
     public boolean hasSkill(String skill_name) {
-        return this.skills.containsKey(skill_name);
+        return attribute_memory.get(skill_name, StaticType.integer_type) != null;
+        //return this.skills.containsKey(skill_name);
     }
 
-    public int getSkill(String skill_name) {
-        Integer i = this.skills.get(skill_name);
-        return i == null ? -1 : i;
+    public long getSkill(String skill_name) {
+        IntVar sk = (IntVar) attribute_memory.get(skill_name, StaticType.integer_type);
+        if (sk == null) {
+            return -1;
+        } else {
+            return sk.read();
+        }
     }
 
-    public int delSkill(String skill_name) {
-        Integer i = this.skills.remove(skill_name);
-        this.modified = this.modified || i != null;
-        return i == null ? -1 : i;
+    public long delSkill(String skill_name) {
+        IVariable var = this.attribute_memory.remove(skill_name);
+        if (var instanceof IntVar)
+            return ((IntVar)var).read();
+        return -1;
     }
 
     public void clrSkill() {
-        this.skills.clear();
+        this.attribute_memory.clear();
     }
 
     public int getGacha(String gacha_path) {
@@ -117,6 +136,10 @@ public class Character {
         return this.name;
     }
 
+    public Memory getMemory() {
+        return this.memory;
+    }
+
     public boolean hasChanged() {
         return this.modified;
     }
@@ -135,10 +158,13 @@ public class Character {
         rtn.add(new JsonBooleanNode("used", this.used));
 
         JsonObjectNode skill_node = new JsonObjectNode("skills");
-        for (String skill_name : this.skills.keySet()) {
-            skill_node.add(new JsonLongNode(
-                    skill_name, String.valueOf(this.skills.get(skill_name))
-            ));
+        for (IVariable var : this.attribute_memory) {
+            if (var instanceof IntVar) {
+                skill_node.add(new JsonLongNode(
+                        var.getName(),
+                        String.valueOf(((IntVar)var).read())
+                ));
+            }
         }
         rtn.add(skill_node);
 
@@ -157,10 +183,10 @@ public class Character {
         if (node instanceof JsonObjectNode) {
             for (JsonNode sub_node : (JsonObjectNode) node) {
                 if (sub_node instanceof JsonLongNode) {
-                    this.skills.put(
+                    this.attribute_memory.push(new IntVar(
                             sub_node.getName(),
                             Integer.parseInt(sub_node.getContent())
-                    );
+                    ));
                 }
             }
         }

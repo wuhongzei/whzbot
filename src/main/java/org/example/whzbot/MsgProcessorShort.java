@@ -5,11 +5,14 @@ import net.mamoe.mirai.message.data.PlainText;
 
 import org.example.whzbot.command.Command;
 import org.example.whzbot.command.CommandHelper;
+import org.example.whzbot.command.CommandHelper2;
 import org.example.whzbot.command.CommandHolder;
+import org.example.whzbot.data.Character;
 import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.Pool;
-import org.example.whzbot.data.Character;
 import org.example.whzbot.data.game.GameManager;
+import org.example.whzbot.data.result.Result;
+import org.example.whzbot.data.variable.instance.StringVar;
 import org.example.whzbot.helper.CardDeckHelper;
 import org.example.whzbot.helper.DiceHelper;
 import org.example.whzbot.helper.HttpHelper;
@@ -28,6 +31,7 @@ public class MsgProcessorShort extends MsgProcessorBase {
     String reply;
     int stack_level = 0; //use to mark up level of recursion, prevent stack overflow.
     int exec_loc = -1;
+    boolean suc;
 
     @SuppressWarnings("unused")
     public MsgProcessorShort(AbstractMessageEvent event) {
@@ -37,11 +41,18 @@ public class MsgProcessorShort extends MsgProcessorBase {
     public MsgProcessorShort(IUser user_in) {
         super();
         this.user = user_in;
+        this.suc = true;
     }
 
     public void reply(String str) {
         this.reply = str;
         this.user.setStorage("last_reply", str);
+        this.suc = true;
+    }
+
+    public void err(String info) {
+        this.reply = info;
+        this.suc = false;
     }
 
     public void setMsg(String text) {
@@ -50,6 +61,10 @@ public class MsgProcessorShort extends MsgProcessorBase {
 
     public String getReply() {
         return this.reply;
+    }
+
+    public boolean isSuc() {
+        return this.suc;
     }
 
     public void addLevel() {
@@ -166,7 +181,7 @@ public class MsgProcessorShort extends MsgProcessorBase {
                         cutoff = Integer.parseInt(holder.getNextInt());
                         has_cutoff = true;
                     } else {
-                        cutoff = user.getCharacter().getSkill(skill_name);
+                        cutoff = (int) user.getCharacter().getSkill(skill_name);
                         has_cutoff = cutoff != -1;
                     }
                 }
@@ -419,6 +434,23 @@ public class MsgProcessorShort extends MsgProcessorBase {
                 reply(Double.toString(prob));
                 break;
             }
+            case variable: {
+                Result r = CommandHelper2.commandVariable(user, holder);
+                if (r.isSuccess()) {
+                    reply(((StringVar)r.get(2)).read());
+                }
+                else {
+                    this.suc = false;
+                    reply(r.get());
+                }
+                break;
+            }
+            case function: {
+                Result r = CommandHelper2.commandFunction(user, holder);
+                this.suc = r.isSuccess();
+                reply(r.get());
+                break;
+            }
             case http: {
                 if (!holder.hasNext()) {
                     reply("err");
@@ -638,14 +670,23 @@ public class MsgProcessorShort extends MsgProcessorBase {
                 sub_str = str.substring(i + 1, j);
                 if (proc.stackCheck()) {
                     proc.addLevel();
-                    proc.setMsg(wrapper(proc, sub_str));
+                    String temp = wrapper(proc, sub_str);
+                    if (!proc.isSuc()) { // todo: break recursion correctly.
+                        proc.decLevel();
+                        return temp;
+                    }
+                    proc.setMsg(temp);
                     proc.decLevel();
                 } else
                     proc.setMsg(sub_str);
 
                 if (proc.process() == 1) {
                     builder.append(str, last_i, i);
-                    builder.append(proc.getReply());
+                    if (proc.isSuc())
+                        builder.append(proc.getReply());
+                    else {
+                        return builder.toString();
+                    }
                     last_i = j + 1;
                 }
                 i = str.indexOf('{', j);
@@ -654,5 +695,9 @@ public class MsgProcessorShort extends MsgProcessorBase {
         }
         builder.append(str, last_i, str.length());
         return builder.toString();
+    }
+
+    public static String wrapperEntry(IUser user, String cmd) {
+        return wrapper(new MsgProcessorShort(user), cmd);
     }
 }

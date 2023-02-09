@@ -48,7 +48,7 @@ public class CommandHelper {
                     if (!holder.isNextWord())
                         return "err miss_skill";
                     skill_name = holder.getNextWord();
-                    int i = character.delSkill(skill_name);
+                    long i = character.delSkill(skill_name);
                     if (i == -1)
                         return "err no_skill";
                     return "del" + skill_name;
@@ -93,8 +93,8 @@ public class CommandHelper {
                     return "err unknown";
             }
 
-            int new_value;
-            int old_value = character.getSkill(skill_name);
+            long new_value;
+            long old_value = character.getSkill(skill_name);
             StringBuilder builder = new StringBuilder();
             switch (sign) {
                 case "+":
@@ -138,7 +138,7 @@ public class CommandHelper {
                 return "show " + character.getSkill(skill_name) + " " + skill_name;
 
         int new_value = Integer.parseInt(holder.getNextInt());
-        int old_value = character.setSkill(skill_name, new_value);
+        int old_value = (int) character.setSkill(skill_name, new_value);
         return "set " + new_value + " " + old_value + " " + skill_name;
     }
 
@@ -559,7 +559,7 @@ public class CommandHelper {
             cutoff = Integer.parseInt(holder.getNextInt());
         } else if (holder.isNextWord()) {
             String skill_name = holder.getNextWord();
-            cutoff = character.getSkill(skill_name);
+            cutoff = (int) character.getSkill(skill_name);
             if (cutoff == -1)
                 return "err no_skill";
         } else
@@ -641,7 +641,7 @@ public class CommandHelper {
 
     public static String san_check(IUser user, CommandHolder holder) {
         Character c = user.getCharacter();
-        int san = c.getSkill("san");
+        int san = (int) c.getSkill("san");
         //if (san == -1)
         //    return "err san_unset";
 
@@ -750,7 +750,7 @@ public class CommandHelper {
                 return "err en.out_bound";
             }
         } else {
-            skill_val = character.getSkill(skill_name);
+            skill_val = (int) character.getSkill(skill_name);
             if (skill_val == -1) {
                 return "err en.no_skill";
             }

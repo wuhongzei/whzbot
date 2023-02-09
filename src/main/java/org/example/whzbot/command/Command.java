@@ -16,10 +16,10 @@ public enum Command {
     off(CommandType.ADMIN, Permission.BOT_OWNER, "off"),
     exit(CommandType.ADMIN, Permission.BOT_OWNER, "exit"),
     save(CommandType.ADMIN, Permission.BOT_OWNER, "save"),
-    ban(CommandType.ADMIN, Permission.BOT_ADMIN, "ban"),
+    /*ban(CommandType.ADMIN, Permission.BOT_ADMIN, "ban"),
     un_ban(CommandType.ADMIN, Permission.BOT_ADMIN, "unban"),
     ban_group(CommandType.ADMIN, Permission.BOT_ADMIN, "bangroup"),
-    un_ban_group(CommandType.ADMIN, Permission.BOT_ADMIN, "unbangroup"),
+    un_ban_group(CommandType.ADMIN, Permission.BOT_ADMIN, "unbangroup"),*/
     white_list(CommandType.ADMIN, Permission.BOT_ADMIN, "white"),
     reload(CommandType.ADMIN, Permission.BOT_ADMIN, "reload"),
     update(CommandType.ADMIN, Permission.BOT_OWNER, "update"),
@@ -49,7 +49,6 @@ public enum Command {
     rules(CommandType.DICE, Permission.ANYONE, "rules"),
     coc6(CommandType.DICE, Permission.ANYONE, "cochex"),
     coc(CommandType.DICE, Permission.ANYONE, "coc"),
-    draw(CommandType.DICE, Permission.ANYONE, "draw"),
     deck(CommandType.DICE, Permission.ANYONE, "deck"),
     init(CommandType.DICE, Permission.ANYONE, "init"),
     dnd(CommandType.DICE, Permission.ANYONE, "dnd"),
@@ -70,11 +69,12 @@ public enum Command {
     jrrp(CommandType.TAROT, Permission.ANYONE, "jrrp"),
     omkj(CommandType.TAROT, Permission.ANYONE, "omkj"),
     tarot(CommandType.TAROT, Permission.ANYONE, "tarot"),
-    st_triangle(CommandType.TAROT, Permission.ANYONE, "st_tri"),
+    draw(CommandType.TAROT, Permission.ANYONE, "draw"),
+    /*st_triangle(CommandType.TAROT, Permission.ANYONE, "st_tri"),
     st_tetra(CommandType.TAROT, Permission.ANYONE, "st_tet"),
     st_cross(CommandType.TAROT, Permission.ANYONE, "st_crs"),
     st_hex(CommandType.TAROT, Permission.ANYONE, "st_hex"),
-    st_dec(CommandType.TAROT, Permission.ANYONE, "st_dec"),
+    st_dec(CommandType.TAROT, Permission.ANYONE, "st_dec"),*/
     gacha(CommandType.TAROT, Permission.ANYONE, "gacha"),
 
     echo(CommandType.SIMCHAT, Permission.ANYONE, "echo"),
@@ -90,6 +90,8 @@ public enum Command {
     mul(CommandType.MATH, Permission.ANYONE, "mul"),
 
     porb(CommandType.MATH, Permission.ANYONE, "prob"),
+    variable(CommandType.MATH, Permission.ANYONE, "var"),
+    function(CommandType.MATH, Permission.ANYONE, "func"),
     bnmd(CommandType.MATH, Permission.ANYONE, "bnmd"), //binomial distribution
     nord(CommandType.MATH, Permission.ANYONE, "nord"), //normal distribution
 
@@ -99,7 +101,7 @@ public enum Command {
     http(CommandType.WEB, Permission.ANYONE, "http"),
     game(CommandType.WEB, Permission.ANYONE, "game"),
     web_save(CommandType.WEB, Permission.ANYONE, "webs"),
-    genshin_stats(CommandType.WEB, Permission.ANYONE, "ysst"),
+    ys_stats(CommandType.WEB, Permission.ANYONE, "ysst"),
 
     unknown(CommandType.GENERAL, "unknown");
 
