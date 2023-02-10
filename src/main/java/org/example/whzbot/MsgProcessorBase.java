@@ -1230,6 +1230,9 @@ public abstract class MsgProcessorBase {
                             file_content = root.toString(0, 60);
                         }
                         break;
+                    case "updated":
+                    case "update":
+                        file_content = GlobalVariable.UPDATED.toString(0, 64);
                 }
                 if (file_content == null)
                     break;

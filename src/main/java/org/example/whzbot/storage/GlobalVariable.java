@@ -1,9 +1,5 @@
 package org.example.whzbot.storage;
 
-import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import org.example.whzbot.command.CommandHolder;
 import org.example.whzbot.data.gacha.GachaPool;
 import org.example.whzbot.storage.json.Json;
@@ -13,6 +9,10 @@ import org.example.whzbot.storage.json.JsonLongNode;
 import org.example.whzbot.storage.json.JsonNode;
 import org.example.whzbot.storage.json.JsonObjectNode;
 import org.example.whzbot.storage.json.JsonStringNode;
+
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public class GlobalVariable {
     // todo: used of three different type is redundant, merge them.
@@ -54,6 +54,7 @@ public class GlobalVariable {
 
     public static void loadLanguages(String base_path) {
         HashMap<Language, String> orphans = new HashMap<>();
+        JsonObjectNode update_lang = new JsonObjectNode("lang");
         for (String lang_name : LANGUAGE_LIST.keySet()) {
             String father_name = LANGUAGE_LIST.get(lang_name);
             Language lang;
@@ -65,7 +66,9 @@ public class GlobalVariable {
             }
             lang.loadFromDist(base_path + "/" + lang_name);
             LANGUAGES.put(lang_name, lang);
+            update_lang.add(new JsonObjectNode(lang_name));
         }
+        UPDATED.add(update_lang);
         for (Language lang : orphans.keySet()) {
             Language father = LANGUAGES.get(orphans.get(lang));
             if (father != null)
@@ -210,11 +213,15 @@ public class GlobalVariable {
             case "var":
             case "variable":
                 map = lang.global_variables;
+                UPDATED.get("lang." + lang_name)
+                        .add(new JsonStringNode("var." + path, value));
                 break;
             case "doc":
             case "help":
             case "help_doc":
                 map = lang.help_doc;
+                UPDATED.get("lang." + lang_name)
+                        .add(new JsonStringNode("doc." + path, value));
                 break;
             default:
                 map = lang.card_translation;
