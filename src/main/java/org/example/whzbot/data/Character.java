@@ -51,6 +51,7 @@ public class Character {
     }
 
     public long setSkill(String skill_name, long value) {
+        value = Math.max(0, value);
         IntVar sk = (IntVar) attribute_memory.get(skill_name, StaticType.integer_type);
         long old;
         if (sk == null) {

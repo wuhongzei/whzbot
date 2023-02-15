@@ -2,6 +2,7 @@ package org.example.whzbot.command;
 
 import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.result.FailedResult;
+import org.example.whzbot.data.result.ListResult;
 import org.example.whzbot.data.result.Result;
 import org.example.whzbot.data.result.StringResult;
 import org.example.whzbot.data.variable.IVariable;
@@ -28,15 +29,7 @@ public class CommandHelper2 {
         if (!holder.hasNext()) {
             name = typ;
             var = memory.get(name);
-            if (var == null) {
-                typ = "null";
-            } else if (var instanceof IntVar) {
-                typ = String.valueOf(((IntVar) var).read());
-            } else if (var instanceof StringVar) {
-                typ = String.format("\"%s\"", ((StringVar) var).read());
-            } else if (var instanceof OverloadedFunction) {
-                typ = ((OverloadedFunction)var).read();
-            }
+            typ = readVar(typ, var);
             return new StringResult("variable.read", new String[]{name, typ});
         }
         name = holder.getNextArg();
@@ -69,8 +62,8 @@ public class CommandHelper2 {
             return new FailedResult("variable.type_err");
         }
         IVariable var2 = memory.get(name, var.getType());
-        if (!StaticType.func_type.isInstance(var) && var2 != null) {
-            memory.assign(var2, var);
+        if (var2 != null) {
+            memory.assign(var2, var); //todo: parse result here.
             return new StringResult("variable.assign").add(var.getName());
         }
         if (memory.put(var)) {
@@ -79,6 +72,19 @@ public class CommandHelper2 {
         } else {
             return new FailedResult("variable.err_collide");
         }
+    }
+
+    private static String readVar(String typ, IVariable var) {
+        if (var == null) {
+            typ = "null";
+        } else if (var instanceof IntVar) {
+            typ = String.valueOf(((IntVar) var).read());
+        } else if (var instanceof StringVar) {
+            typ = String.format("\"%s\"", ((StringVar) var).read());
+        } else if (var instanceof OverloadedFunction) {
+            typ = ((OverloadedFunction) var).read();
+        }
+        return typ;
     }
 
     public static Result commandFunction(IUser user, CommandHolder holder) {
@@ -93,6 +99,29 @@ public class CommandHelper2 {
             ));
         } else {
             return new FailedResult("function.null");
+        }
+    }
+
+    public static Result commandMemory(IUser user, CommandHolder holder) {
+        if (!holder.isNextWord()) {
+            return new FailedResult("no_arg");
+        }
+        Memory mem = user.getCharacter().getMemory();
+        String code = holder.getNextWord();
+        switch (code) {
+            case "list":
+                if (mem.isEmpty())
+                    return new StringResult("memory.empty");
+                ListResult rtn = new ListResult("memory.list");
+                for (IVariable var : mem) {
+                    rtn.add(new StringVar(var.getName(), readVar("", var)));
+                }
+                return rtn;
+            case "clear":
+                mem.clear();
+                return new StringResult("memory.clear");
+            default:
+                return new FailedResult("memory.unknown");
         }
     }
 }

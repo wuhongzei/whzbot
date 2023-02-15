@@ -1,13 +1,20 @@
 package org.example.whzbot.data.result;
 
 import org.example.whzbot.data.variable.IVariable;
+import org.example.whzbot.data.variable.instance.IntVar;
 
 public class VariableResult extends Success{
     IVariable var;
 
+    public VariableResult(String key, long val) {
+        super(key);
+        this.var = new IntVar("", val);
+    }
+
     public VariableResult(IVariable v) {
-        super("function.success");
+        super(v.getName());
         this.var = v;
+        //this.code = key;
     }
 
     @Override

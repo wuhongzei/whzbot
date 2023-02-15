@@ -28,4 +28,9 @@ public class BotFunction extends AbstractFunction {
     public String read() {
         return this.cmd;
     }
+
+    public Result assign(String str) {
+        this.cmd = str;
+        return wrapReturn(this);
+    }
 }

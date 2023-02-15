@@ -31,6 +31,15 @@ public class GroupMsgProcessor extends MsgProcessorBase {
         );
     }
 
+    public void replyImage(byte[] image_content) {
+        try (InputStream stream = new ByteArrayInputStream(image_content)) { // 安全地使用 InputStream
+            net.mamoe.mirai.contact.Group contact = (Group) this.event.getSubject();
+            ExternalResource resource = ExternalResource.create(stream);
+            contact.getFiles().uploadNewFile("temp.png", resource);
+            resource.close();
+        } catch (IOException ignored) {}
+    }
+
     public void sendFile(String file_name, byte[] file_content) {
         try (InputStream stream = new ByteArrayInputStream(file_content)) { // 安全地使用 InputStream
             net.mamoe.mirai.contact.Group contact = (Group) this.event.getSubject();

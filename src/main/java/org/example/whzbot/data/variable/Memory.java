@@ -144,6 +144,10 @@ public class Memory implements Iterable<IVariable> {
         this.heap.clear();
     }
 
+    public boolean isEmpty() {
+        return this.heap.isEmpty();
+    }
+
     @Override
     @NotNull
     public Iterator<IVariable> iterator() {

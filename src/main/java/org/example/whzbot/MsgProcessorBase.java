@@ -163,6 +163,7 @@ public abstract class MsgProcessorBase {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
+                c = 0;
             }
         }
         if (i < rpy.length() - 1)
@@ -846,6 +847,18 @@ public abstract class MsgProcessorBase {
                 Result r = CommandHelper2.commandFunction(user, holder);
                 if (r. isSuccess()) {
                     reply(r.get());
+                } else {
+                    replyTranslated(r.get(), r.gets());
+                }
+                break;
+            }
+            case memory: {
+                Result r = CommandHelper2.commandMemory(user, holder);
+                if (!r.isSuccess()) {
+                    reply(r.get());
+                } else if (r.get().equals("memory.list")){
+                    replyZipped(new TranslateHelper("\n", r.gets(), 4),
+                            "\n", 50);
                 } else {
                     replyTranslated(r.get(), r.gets());
                 }

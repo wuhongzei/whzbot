@@ -1,8 +1,12 @@
 package org.example.whzbot.command;
 
 
-import org.example.whzbot.data.IUser;
 import org.example.whzbot.data.Character;
+import org.example.whzbot.data.IUser;
+import org.example.whzbot.data.result.FailedResult;
+import org.example.whzbot.data.result.Result;
+import org.example.whzbot.data.result.VariableResult;
+import org.example.whzbot.data.variable.instance.IntVar;
 import org.example.whzbot.helper.MinHeap;
 import org.example.whzbot.helper.RandomHelper;
 
@@ -400,30 +404,35 @@ public class CommandHelper {
     /**
      * Similar to roll_dice, but disables default dice and return less.
      *
-     * @return space separated string
-     * err rv.ERR_CODE
-     * rv VAL
+     * @return a Result object
+     * FailedResult "rv.ERR_CODE"
+     * VariableResult "rv" (IntVar)VAL
      */
-    public static String _roll_dice_expr(CommandHolder holder) {
+    public static Result _roll_dice_expr(CommandHolder holder) {
         // .rv (-/+)(number=1)(d dice=100) (b bonus=0) (p -bonus=0) \
         //      (k pick=0)
         int number;
         int sign = 1;
         if (!holder.hasNext()) //.rv|
-            return "err rv.empty";
+            //return "err rv.empty";
+            return new FailedResult("rv.empty");
         if (holder.isNextSign()) {
             String s = holder.getNextSign();
             if (s.equals("-"))
                 sign = -1;
             else if (s.equals("/"))
-                return "rv 0";
+                return new VariableResult(
+                        new IntVar("rv", 0)
+                );
             else if (!s.equals("+"))
-                return "err rv.sign";
+                //return "err rv.sign";
+                return new FailedResult("rv.unknown_sign");
         }
         if (holder.isNextInt()) { //.rv c
             number = Integer.parseInt(holder.getNextInt());
             if (!holder.hasNext()) //.rv c|
-                return "val " + (sign * number);
+                //return "val " + (sign * number);
+                return new VariableResult("val", sign * number);
         } else { //.rv
             number = 1;
         }
@@ -439,24 +448,25 @@ public class CommandHelper {
             switch (w) {
                 case "d":
                     if (!holder.isNextInt())
-                        return "err rv.d.empty";
+                        return new FailedResult("rv.d.empty");
                     dice = Integer.parseInt(holder.getNextInt());
                     break;
                 case "b":
                 case "bonus":
                     if (!holder.isNextInt())
-                        return "err rv.b.empty";
+                        return new FailedResult("rv.b.empty");
+
                     bonus = Integer.parseInt(holder.getNextInt());
                     break;
                 case "p":
                 case "penalty":
                     if (!holder.isNextInt())
-                        return "err rv.b.empty";
+                        return new FailedResult("rv.p.empty");
                     bonus = -Integer.parseInt(holder.getNextInt());
                     break;
                 case "k":
                     if (!holder.isNextSignedInt())
-                        return "err rv.k.empty";
+                        return new FailedResult("rv.k.empty");
                     pick = Integer.parseInt(holder.getNextSignedInt());
                     break;
                 default:
@@ -465,17 +475,18 @@ public class CommandHelper {
             }
         }
         if (dice == 0)
-            return "val " + (sign * number);
+            //return "val " + (sign * number);
+            return new VariableResult("val", sign * number);
         if (number != 1 && bonus != 0)
-            return "err rv.conflict.cb";
+            return new FailedResult("rv.conflict.cb");
         if (bonus != 0 && pick != 0)
-            return "err rv.conflict.bk";
+            return new FailedResult("rv.conflict.bk");
         if (dice < 1)
-            return "err rv.neg_dice";
+            return new FailedResult("rv.neg_dice");
         if (pick > number)
             pick = 0;
 
-        String rtn;
+        Result rtn;
         if (bonus != 0) { // .r count d dice b/p bonus|
             boolean is_bonus = bonus > 0; //bonus or penalty
             bonus = is_bonus ? bonus : -bonus;
@@ -512,14 +523,15 @@ public class CommandHelper {
                             result % 10 + bonus_dice * 10 : bonus_dice;
                 }
             }
-            rtn = String.format("rv %d", sign * result);
-
+            //rtn = String.format("rv %d", sign * result);
+            rtn = new VariableResult("rv", sign * result);
         } else if (pick != 0) { //.r (count) d (dice) k (pick)
             if (pick > 100)
-                return "err rv.pick_large";
+                return new FailedResult("rv.pick_large");
 
             int pick_max = pick > 0 ? 1 : -1;
             pick = pick * pick_max;
+            int threshold = pick_max > 0 ? dice : -1;
 
             Integer[] picked = new Integer[pick];
             int i;
@@ -533,9 +545,10 @@ public class CommandHelper {
             for (; i < number; i++) {
                 d = RandomHelper.dice(dice) * pick_max;
                 if (d > heap.top()) { // update heap to keep max val;
-                    heap.extract();
-                    heap.add(d);
+                    heap.replaceTop(d);
                 }
+                if (heap.top() == threshold) // heap filled, break;
+                    i = number;
             }
             picked = heap.toArray(picked); // take heap content;
             int sum = 0;
@@ -544,9 +557,11 @@ public class CommandHelper {
                 sum += picked[i];
             }
 
-            rtn = "rv " + (sign * sum);
+            //rtn = "rv " + (sign * sum);
+            rtn = new VariableResult("rv", sign * sum);
         } else { //.r (count) d (dice)
-            rtn = "rv " + (sign * RandomHelper.dice(dice, number));
+            //rtn = "rv " + (sign * RandomHelper.dice(dice, number));
+            rtn = new VariableResult("rv", sign * RandomHelper.dice(dice, number));
         }
 
         return rtn;
@@ -645,14 +660,12 @@ public class CommandHelper {
         //if (san == -1)
         //    return "err san_unset";
 
-        String[] buffer;
-
+        Result r = _roll_dice_expr(holder);
         //suc_dice
-        buffer = _roll_dice_expr(holder).split(" ");
-        if (buffer[0].equals("err")) {
-            return "err l." + buffer[1];
+        if (!r.isSuccess()) {
+            return "err sc.l." + r.get();
         }
-        int s = Integer.parseInt(buffer[1]);
+        int s = (int)((IntVar)r.get(0)).read();
 
         if (!holder.hasNext())
             return "err incomplete";
@@ -660,11 +673,11 @@ public class CommandHelper {
             holder.getNextSign();
 
         //fail_dice;
-        buffer = _roll_dice_expr(holder).split(" ");
-        if (buffer[0].equals("err")) {
-            return "err sc.r." + buffer[1];
+        r = _roll_dice_expr(holder);
+        if (!r.isSuccess()) {
+            return "err sc.r." + r.get();
         }
-        int f = Integer.parseInt(buffer[1]);
+        int f = (int)((IntVar)r.get(0)).read();
 
         if (holder.isNextInt())
             san = Integer.parseInt(holder.getNextInt());
@@ -724,8 +737,8 @@ public class CommandHelper {
         }
 
         int is_change = 0;
-        String suc_dice;
-        String fal_dice;
+        Result suc_dice;
+        Result fal_dice;
         if (holder.hasNext()) {
             if (holder.isNextSign())
                 is_change = 1;
@@ -738,7 +751,8 @@ public class CommandHelper {
                     is_change += 1;
                 suc_dice = _roll_dice_expr(holder);
             } else {
-                fal_dice = "val 0";
+                fal_dice = new VariableResult("val", 0);
+                is_change += 2;
             }
         } else {
             return "err en.dice_err";
@@ -759,11 +773,10 @@ public class CommandHelper {
         int det = RandomHelper.hundred();
 
         if (det > skill_val) {
-            String[] buffer = suc_dice.split(" ");
-            if (buffer[0].equals("err")) {
-                return "err en." + buffer[1];
+            if (!suc_dice.isSuccess()) {
+                return "err en." + suc_dice.get();
             }
-            int s = Integer.parseInt(buffer[1]);
+            int s = (int)((IntVar)suc_dice.get(0)).read();
 
 
             if (is_change % 2 == 1) {
@@ -776,11 +789,10 @@ public class CommandHelper {
                         s, det, skill_val);
             }
         } else {
-            String[] buffer = fal_dice.split(" ");
-            if (buffer[0].equals("err")) {
-                return "err en." + buffer[1];
+            if (!fal_dice.isSuccess()) {
+                return "err en." + fal_dice.get();
             }
-            int f = Integer.parseInt(buffer[1]);
+            int f = (int)((IntVar)fal_dice.get(0)).read();
 
             if (is_change / 2 == 1) {
                 character.setSkill(skill_name, skill_val + f);

@@ -91,6 +91,7 @@ public enum Command {
 
     porb(CommandType.MATH, Permission.ANYONE, "prob"),
     variable(CommandType.MATH, Permission.ANYONE, "var"),
+    memory(CommandType.MATH, Permission.ANYONE, "memory"),
     function(CommandType.MATH, Permission.ANYONE, "func"),
     bnmd(CommandType.MATH, Permission.ANYONE, "bnmd"), //binomial distribution
     nord(CommandType.MATH, Permission.ANYONE, "nord"), //normal distribution

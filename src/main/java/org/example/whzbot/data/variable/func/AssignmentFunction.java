@@ -29,6 +29,8 @@ public class AssignmentFunction extends AbstractFunction implements IBinaryFunct
     public Result run(IVariable var1, IVariable var2) {
         if (var1 instanceof Instance) {
             return ((Instance)var1).assign(var2);
+        } else if (var1 instanceof OverloadedFunction) {
+            ((OverloadedFunction) var1).assign(var2);
         }
         return wrapIncompatible("assign", var1.toString());
     }

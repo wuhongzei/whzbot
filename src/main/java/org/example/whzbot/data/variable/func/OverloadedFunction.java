@@ -61,6 +61,15 @@ public class OverloadedFunction extends AbstractFunction
         return "";
     }
 
+    public Result assign(IVariable var) {
+        if (var instanceof BotFunction) {
+            for (AbstractFunction f : this.overloads)
+                if (f instanceof BotFunction)
+                    return ((BotFunction)f).assign(((BotFunction) var).read());
+        }
+        return wrapIncompatible(this.func_name, "no assign");
+    }
+
     public void join(AbstractFunction f) {
         this.overloads.add(f);
     }

@@ -451,6 +451,12 @@ public class MsgProcessorShort extends MsgProcessorBase {
                 reply(r.get());
                 break;
             }
+            case memory: {
+                Result r = CommandHelper2.commandMemory(user, holder);
+                this.suc = r.isSuccess();
+                reply(r.get());
+                break;
+            }
             case http: {
                 if (!holder.hasNext()) {
                     reply("err");
@@ -666,7 +672,12 @@ public class MsgProcessorShort extends MsgProcessorBase {
         StringBuilder builder = new StringBuilder();
         while (i != -1) {
             j = StringHelper.encloseBracket(str, i);
-            if (j > 0 && j < str.length()) {
+            if (i > 0 && str.charAt(i - 1) == '.') {
+                str = str.substring(0, i - 1) + str.substring(i);
+                j--;
+                i = str.indexOf('{', j);
+            }
+            else if (j > 0 && j < str.length()) {
                 sub_str = str.substring(i + 1, j);
                 if (proc.stackCheck()) {
                     proc.addLevel();
