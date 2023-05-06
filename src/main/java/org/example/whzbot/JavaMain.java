@@ -2,6 +2,7 @@ package org.example.whzbot;
 
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.BotFactory;
+import net.mamoe.mirai.auth.BotAuthorization;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.event.events.BotInvitedJoinGroupRequestEvent;
 import net.mamoe.mirai.event.events.BotLeaveEvent;
@@ -33,7 +34,7 @@ public class JavaMain {
     public static long master_qq = -1L;
     public static long bot_qq = 0L;
     public static String password = null;
-    public static final String version = "2.10.1.101";
+    public static final String version = "2.10.3.105";
     public static String working_dir = "";
     public static String resource_dir = "";
     public static String storing_dir = "";
@@ -68,20 +69,25 @@ public class JavaMain {
         }
 
         MiraiProtocol finalProtocol = protocol;
+        BotConfiguration botConfig = new BotConfiguration() {{
+            fileBasedDeviceInfo();
+            setWorkingDir(new File(working_dir));
+            setProtocol(finalProtocol); //IPAD, ANDROID_PAD, ANDROID_PHONE
+            noBotLog();
+            autoReconnectOnForceOffline();
+            setReconnectionRetryTimes(5);
+        }};
+        //Bot bot = BotFactory.INSTANCE.newBot(
+        //        bot_qq, password, botConfig
+        //);
         Bot bot = BotFactory.INSTANCE.newBot(
-                bot_qq,
-                password,
-                new BotConfiguration() {{
-                    fileBasedDeviceInfo();
-                    setWorkingDir(new File(working_dir));
-                    setProtocol(finalProtocol); //IPAD, ANDROID_PAD, ANDROID_PHONE
-                }}
+                bot_qq, BotAuthorization.byQRCode(), botConfig
         );
         bot.login();
         JavaMain.afterLogin(bot);
-        running = true;
+        running = false;
         bot.join();
-        while (running) {
+        /*while (running) {
             System.out.println("looped");
             try {
                 String relogin_msg = reLogin(bot, offline_facter);
@@ -92,7 +98,7 @@ public class JavaMain {
                 bot.getLogger().error(e);
             }
             bot.join();
-        }
+        }*/
     }
 
     public static void afterLogin(@NotNull Bot bot) {
@@ -112,14 +118,6 @@ public class JavaMain {
         bot.getEventChannel().subscribeAlways(
                 GroupMessageEvent.class,
                 (event) -> new GroupMsgProcessor(event).process()
-        );
-        bot.getEventChannel().subscribeAlways(
-                BotOfflineEvent.Dropped.class,
-                (event) -> offline_facter = 1000
-        );
-        bot.getEventChannel().subscribeAlways(
-                BotOfflineEvent.Force.class,
-                (event) -> offline_facter = 60000
         );
         bot.getEventChannel().subscribeAlways(
                 BotLeaveEvent.Kick.class,
@@ -163,6 +161,21 @@ public class JavaMain {
                                 event.getInvitorId(),
                                 event.getGroupName()
                         ));
+                }
+        );
+        bot.getEventChannel().subscribeAlways(
+                BotOfflineEvent.Dropped.class,
+                (event) -> JavaMain.saveProfile()
+        );
+        bot.getEventChannel().subscribeAlways(
+                BotOfflineEvent.Force.class,
+                (event) -> JavaMain.saveProfile()
+        );
+        bot.getEventChannel().subscribeAlways(
+                BotOfflineEvent.MsfOffline.class,
+                (event) -> {
+                    JavaMain.saveProfile();
+                    bot.close();
                 }
         );
     }

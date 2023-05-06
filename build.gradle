@@ -1,6 +1,6 @@
 plugins {
     id 'java-library'
-    id 'org.jetbrains.kotlin.jvm' version '1.5.30' // 确保添加 Kotlin
+    id 'org.jetbrains.kotlin.jvm' version '1.8.10' // 确保添加 Kotlin
 }
 java {
     toolchain {
@@ -9,7 +9,7 @@ java {
 }
 
 group = "org.example"
-version = "2.10.0"
+version = "2.10.3"
 
 repositories {
     mavenCentral()
@@ -18,8 +18,10 @@ repositories {
 
 dependencies {
     // 开发时使用 mirai-core-api，运行时提供 mirai-core
-    api("net.mamoe:mirai-core-api:2.13.3")
-    runtimeOnly("net.mamoe:mirai-core:2.13.3")
+    //api("net.mamoe:mirai-core-api:2.13.3")
+    //implementation("net.mamoe:mirai-core:2.12.3")
+    api("net.mamoe:mirai-core-api:2.15.0-M1")
+    runtimeOnly("net.mamoe:mirai-core:2.15.0-M1")
     //api("net.mamoe:mirai-core:2.12.3")
 
     // 可以简单地只添加api("net.mamoe:mirai-core:2.6.5")
@@ -32,8 +34,17 @@ jar {
     }
 
     from {
-        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
     }
 
     exclude("META-INF/BC2048KE.SF", "META-INF/BC2048KE.DSA", "META-INF/BC1024KE.SF", "META-INF/BC1024KE.DSA")
+    //exclude("META-INF/versions/9/module-info.class", "META-INF/INDEX.LIST", "META-INF/io.netty.versions.properties")
+}
+
+task move(type: Copy) {
+    from "/build/libs"
+    include "mirai-whzbot-" + version + ".jar"
+    into "D:/迅雷下载/bot"
 }
